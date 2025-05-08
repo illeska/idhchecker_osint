@@ -109,13 +109,14 @@ Example `ip_list.txt`:
 
 ### Planned tiny features for future releases:
 
-- ✅ Checkbox filter to select which services to use *(v1.2)*
-- ↔️ Navigation through previously scanned IPs (back/next) *(v1.2)*
-- 📄 Option to customize the display theme (dark/light modes) *(v1.3)*
-- 📝 Customizable file import/export settings *(v1.x)*
+- ⚙️ Executable file for easy installation and use *(v1.2)*
+- ↔️ Navigation through previously scanned IPs (back/next) *(v1.3)*
+- ✅ Checkbox filter to select which services to use *(v1.3)*
+- 📄 Option to customize the display theme (dark/light modes) *(v1.4)*
 - ➕ Integration of additional threat intelligence platforms *(v1.x)*
 - 📊 Basic statistics and visualization of results for the scanned IPs (total blocked, skipped, etc.) directly within the interface *(v1.x)*
-- ⚙️ Executable file for easy installation and use *(v1.9)*
+- 📝 Customizable file import/export settings *(v1.x)*
+
 ## 📬 Contact
 
 For suggestions or questions:  
