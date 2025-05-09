@@ -1,4 +1,4 @@
-# 🔐 IP Checker OSINT - v1.1
+# 🔐 IP Checker OSINT - v1.2
 
 **IP Checker** is a professional application designed for cybersecurity IP analysis.  
 It allows you to quickly assess the reputation of IP addresses using multiple specialized services, through a clean, modern, and interactive user interface.
@@ -13,17 +13,14 @@ Users are solely responsible for complying with applicable laws in their country
 
 ---
 
+## 🆕 What's New in v1.2
 
-## 🆕 What's New in v1.1
-
-- ✅ New "Safe it" button added for marking IPs as safe
-- 📝 Popup for entering a reason after blocking or safing an IP
-- 💾 The chosen reason is automatically saved next to the IP in the original `.txt` file:
-  - Example: `192.168.1.1 blocked (malicious activity)`
-- ⌨️ You can now submit the reason by pressing Enter
+- ⚙️ Executable version available for Windows users
+- ✅ New checkbox filters to choose which services to use before scanning
+- 🚀 Faster performance when working with large IP lists
 - 🎨 Visual improvements:
-  - "IP Checker v1.1" label added in top-left corner
-  - Proper layout integration without resizing the window
+  - Reworked the "IP Checker" layout for better clarity
+  - Interface adjusted to integrate the new checkbox options smoothly
 
 ---
 
@@ -47,30 +44,35 @@ Users are solely responsible for complying with applicable laws in their country
 
 ---
 
-## ⚙️ Dependencies
+## 📦 Installation
 
-Install the required Python packages with:
+### 💻 Windows
+1. Download the `IP Checker.exe` file from the releases section
+2. Double-click the executable to launch the application (no installation required)
 
-    pip install ttkbootstrap
-
-### 🖥️ If you're on Linux:
-
-    sudo apt install python3-tk
+### 🐧 Linux
+The Linux executable is under development. For now, use the script version:
+1. Install dependencies:
+   ```
+   sudo apt install python3-tk
+   pip install ttkbootstrap
+   ```
+2. Run `python3 checker.py`
 
 ---
 
-## 📦 How to Use
+## 📋 How to Use IP Checker
 
-1. Run the script:
+1. Launch the application (double-click the executable or run the script)
 
-    python checker.py
+2. Select which services you want to use via the checkboxes
 
-2. Click "Choose a file" and select a `.txt` file with IP addresses (one per line).
+3. Click "Choose a file" and select a `.txt` file with IP addresses (one per line)
 
-3. Click "Start IP Checker".
+4. Click "Start IP Checker"
 
-4. For each IP, choose:
-   - ✅ Check this IP → Opens all 5 scanning websites
+5. For each IP, choose:
+   - ✅ Check this IP → Opens all selected scanning websites in your browser
    - ⛔ Block it → Add `blocked (reason)` in file
    - ✅ Safe it → Add `safed (reason)` in file
    - ⏭️ Skip this IP → Moves to the next address
@@ -90,7 +92,7 @@ Example `ip_list.txt`:
 ## 🛡️ Legal Notices
 
 - Software developed by illeska
-- Current version: 1.1
+- Current version: 1.2
 - Uses the following external services:
   - ttkbootstrap
   - AbuseIPDB
@@ -103,23 +105,22 @@ Example `ip_list.txt`:
 
 ### Planned big features for future versions:
 
+- 🔄 Software name change to reflect expanded functionality *(v2)*
 - 🌐 Multi-language Support *(v2.x)*
 - 🎯 Possible integration of WHOIS auto-lookup to enrich IP data with ASN, domain, geolocation, etc. *(v3.x)*
 - 📊 Display IP analysis results directly in the interface, powered by API integration *(v4.x)*
 
 ### Planned tiny features for future releases:
 
-- ⚙️ Executable file for easy installation and use *(v1.2)*
 - ↔️ Navigation through previously scanned IPs (back/next) *(v1.3)*
-- ✅ Checkbox filter to select which services to use *(v1.3)*
-- 📄 Option to customize the display theme (dark/light modes) *(v1.4)*
+- 📄 Option to customize the display theme (dark/light modes) *(v1.3)*
+- 📝 Customizable file import/export settings *(v1.x)*
 - ➕ Integration of additional threat intelligence platforms *(v1.x)*
 - 📊 Basic statistics and visualization of results for the scanned IPs (total blocked, skipped, etc.) directly within the interface *(v1.x)*
-- 📝 Customizable file import/export settings *(v1.x)*
+- 🔍 Support for verifying domain names and hashes, in addition to IP addresses *(v1.9)*
 
 ## 📬 Contact
 
 For suggestions or questions:  
 DM ME.  
 # ipchecker
-# ipchecker_osint
