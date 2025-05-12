@@ -24,8 +24,13 @@ def resource_path(relative_path):
 class IPCheckerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("IP Checker v1.2")
-        self.root.iconbitmap(resource_path("icon.ico"))
+        self.root.title("IP Checker v1.3")
+        try:
+            icon_path = resource_path("icon.ico")
+            if os.path.exists(icon_path):
+                self.root.iconbitmap(icon_path)
+        except Exception as e:
+            print(f"Note: Could not load icon: {e}")
         self.root.configure(bg="#212121")
         self.root.geometry("800x600")
 
@@ -92,14 +97,22 @@ class IPCheckerGUI:
         self.ip_display.config(state="disabled", padx=3, pady=3)
         self.ip_display.pack(padx=10, pady=(10, 0), anchor="w")
 
+        # Navigation buttons frame
+        self.nav_frame = ttk.Frame(root)
+        self.nav_frame.pack(padx=10, pady=3, anchor="w")
+
+        # Navigation buttons (back/next)
+        self.back_button = ttk.Button(self.nav_frame, text="⬅️", command=self.previous_ip, width=3, bootstyle="info")
+        self.back_button.pack(side="left", padx=5)
+        
+        self.next_button = ttk.Button(self.nav_frame, text="➡️", command=self.go_next_ip, width=3, bootstyle="info")
+        self.next_button.pack(side="left", padx=5)
+
         self.button_frame = ttk.Frame(root)
         self.button_frame.pack(padx=10, pady=5, anchor="w")
 
         self.check_button = ttk.Button(self.button_frame, text="Check this IP", command=self.check_current_ip, bootstyle="primary")
         self.check_button.pack(side="left", padx=5)
-
-        self.skip_button = ttk.Button(self.button_frame, text="Skip this IP", command=self.skip_current_ip, bootstyle="warning")
-        self.skip_button.pack(side="left", padx=5)
 
         self.block_button = ttk.Button(self.button_frame, text="Block it", command=self.block_current_ip, bootstyle="danger")
         self.block_button.pack(side="left", padx=5)
@@ -108,11 +121,16 @@ class IPCheckerGUI:
         self.safe_button.pack(side="left", padx=5)
 
         self.disable_action_buttons()
+        self.disable_navigation_buttons()
 
         self.console = scrolledtext.ScrolledText(root, width=100, height=25, state='disabled', bg="#1e1e1e", fg="#f0f0f0", insertbackground="white")
         self.console.pack(padx=10, pady=10, fill="both", expand=True)
 
         self.file_path = None
+        self.ip_history = []  # Track navigation history
+        self.ip_list = []
+        self.current_index = -1
+        self.current_ip = None
         self.center_window()
 
     def select_all_services(self):
@@ -164,18 +182,52 @@ class IPCheckerGUI:
         self.ip_display.insert("end", f" ({index + 1} of {total})", "normal")
         self.ip_display.config(state="disabled")
         self.enable_action_buttons()
+        self.update_navigation_buttons()
 
     def enable_action_buttons(self):
         self.check_button.config(state="normal")
-        self.skip_button.config(state="normal")
         self.block_button.config(state="normal")
         self.safe_button.config(state="normal")
 
     def disable_action_buttons(self):
         self.check_button.config(state="disabled")
-        self.skip_button.config(state="disabled")
         self.block_button.config(state="disabled")
         self.safe_button.config(state="disabled")
+
+    def update_navigation_buttons(self):
+        if self.current_index > 0:
+            self.back_button.config(state="normal")
+        else:
+            self.back_button.config(state="disabled")
+        self.next_button.config(state="normal")
+
+    def disable_navigation_buttons(self):
+        self.back_button.config(state="disabled")
+        self.next_button.config(state="disabled")
+
+    def previous_ip(self):
+        if self.current_index > 0:
+            self.current_index -= 1
+            self.current_ip = self.ip_list[self.current_index]
+            self.update_ip_label(self.current_ip, self.current_index, len(self.ip_list))
+            self.console_log(f"Navigated back to IP: {self.current_ip}")
+
+    def go_next_ip(self):
+        if self.current_index < len(self.ip_list) - 1:
+            self.current_index += 1
+            self.current_ip = self.ip_list[self.current_index]
+            self.update_ip_label(self.current_ip, self.current_index, len(self.ip_list))
+            self.console_log(f"Navigated forward to IP: {self.current_ip}")
+        elif self.current_index == len(self.ip_list) - 1:
+            confirm = messagebox.askyesno("Confirmation", "This is the last IP, are you sure to end it ?")
+            if confirm:
+                self.ip_display.config(state="normal")
+                self.ip_display.delete("1.0", "end")
+                self.ip_display.insert("end", "✅ All IPs checked.", "bold")
+                self.ip_display.config(state="disabled")
+                self.disable_action_buttons()
+                self.disable_navigation_buttons()
+                self.console_log("Checking Done - All the IPs have been treated.")
 
     def check_current_ip(self):
         enabled_services = {name: data for name, data in self.services.items() if data["enabled"].get()}
@@ -189,12 +241,6 @@ class IPCheckerGUI:
         open_web(self.current_ip, enabled_services)
         self.update_ip_label(self.current_ip, self.current_index, len(self.ip_list), status="✅")
 
-    def skip_current_ip(self):
-        confirm = messagebox.askyesno("Confirmation", f"Are you sure you want to skip this IP?")
-        if confirm:
-            self.disable_action_buttons()
-            self.console_log(f"{self.current_ip} has been skipped.")
-            self.next_ip()
 
     def block_current_ip(self):
         confirm = messagebox.askyesno("Confirmation", f"Are you sure you want to block this IP?")
@@ -262,6 +308,7 @@ class IPCheckerGUI:
             self.ip_display.insert("end", "✅ All IPs checked.", "bold")
             self.ip_display.config(state="disabled")
             self.disable_action_buttons()
+            self.disable_navigation_buttons()
 
     def check_ip(self):
         try:

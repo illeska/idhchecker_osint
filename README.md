@@ -1,4 +1,4 @@
-# 🔐 IP Checker OSINT - v1.2
+# 🔐 IP Checker OSINT - v1.3
 
 **IP Checker** is a professional application designed for cybersecurity IP analysis.  
 It allows you to quickly assess the reputation of IP addresses using multiple specialized services, through a clean, modern, and interactive user interface.
@@ -13,14 +13,11 @@ Users are solely responsible for complying with applicable laws in their country
 
 ---
 
-## 🆕 What's New in v1.2
+## 🆕 What's New in v1.3
 
-- ⚙️ Executable version available for Windows users
-- ✅ New checkbox filters to choose which services to use before scanning
-- 🚀 Faster performance when working with large IP lists
-- 🎨 Visual improvements:
-  - Reworked the "IP Checker" layout for better clarity
-  - Interface adjusted to integrate the new checkbox options smoothly
+- ↔️ Navigation through previously scanned IPs (Back/Next buttons) :
+  - Easily move forward and backward between IPs you've already processed.
+- ✅ Removed "Skip" functionality to encourage complete IP list processing.
 
 ---
 
@@ -39,7 +36,8 @@ Users are solely responsible for complying with applicable laws in their country
   - `xxx.xxx.xxx.xxx blocked (reason)`
   - `xxx.xxx.xxx.xxx safed (reason)`
 - Real-time console log inside the interface
-- Interactive buttons: Check / Skip / Block / Safe
+- Interactive buttons: Check / Block / Safe
+- Navigation buttons: Back / Next to move between IPs already viewed
 - Progress indicator: IP checking: ...
 
 ---
@@ -75,7 +73,7 @@ The Linux executable is under development. For now, use the script version:
    - ✅ Check this IP → Opens all selected scanning websites in your browser
    - ⛔ Block it → Add `blocked (reason)` in file
    - ✅ Safe it → Add `safed (reason)` in file
-   - ⏭️ Skip this IP → Moves to the next address
+   - ↔️ Use **Back** or **Next** to revisit or move between IPs  
 
 ---
 
@@ -92,7 +90,7 @@ Example `ip_list.txt`:
 ## 🛡️ Legal Notices
 
 - Software developed by illeska
-- Current version: 1.2
+- Current version: 1.3
 - Uses the following external services:
   - ttkbootstrap
   - AbuseIPDB
@@ -105,22 +103,24 @@ Example `ip_list.txt`:
 
 ### Planned big features for future versions:
 
-- 🔄 Software name change to reflect expanded functionality *(v2)*
+- 🔄 Software name change to reflect expanded functionality *(v2.0)*
 - 🌐 Multi-language Support *(v2.x)*
 - 🎯 Possible integration of WHOIS auto-lookup to enrich IP data with ASN, domain, geolocation, etc. *(v3.x)*
 - 📊 Display IP analysis results directly in the interface, powered by API integration *(v4.x)*
 
-### Planned tiny features for future releases:
+### Planned tiny features for the v1 :
 
 - ↔️ Navigation through previously scanned IPs (back/next) *(v1.3)*
-- 📄 Option to customize the display theme (dark/light modes) *(v1.3)*
-- 📝 Customizable file import/export settings *(v1.x)*
-- ➕ Integration of additional threat intelligence platforms *(v1.x)*
-- 📊 Basic statistics and visualization of results for the scanned IPs (total blocked, skipped, etc.) directly within the interface *(v1.x)*
-- 🔍 Support for verifying domain names and hashes, in addition to IP addresses *(v1.9)*
+- 📄 Option to customize the display theme (dark/light modes) *(v1.4)*
+- ➕ Integration of additional threat intelligence platforms *(v1.5)*
+- 📊 Basic statistics and visualization of results for the scanned IPs (total blocked, skipped, etc.) directly within the interface *(v1.6)*
+- 🔍 Support for verifying domain names, in addition to IP addresses *(v1.6)*
+- 📝 Customizable file import/export settings *(v1.7)*
+- ❌ Auto-close previously opened scan tabs when a new IP is checked *(v1.8)*
+- 🔍 Support for verifying hashes, in addition to IP addresses and domains *(v1.9)*
 
 ## 📬 Contact
 
 For suggestions or questions:  
 DM ME.  
-# ipchecker
+# ipchecker_osint
