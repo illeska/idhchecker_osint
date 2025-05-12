@@ -110,7 +110,6 @@ Example `ip_list.txt`:
 
 ### Planned tiny features for the v1 :
 
-- ↔️ Navigation through previously scanned IPs (back/next) *(v1.3)*
 - 📄 Option to customize the display theme (dark/light modes) *(v1.4)*
 - ➕ Integration of additional threat intelligence platforms *(v1.5)*
 - 📊 Basic statistics and visualization of results for the scanned IPs (total blocked, skipped, etc.) directly within the interface *(v1.6)*
