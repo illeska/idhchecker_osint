@@ -1,4 +1,4 @@
-# 🔐 IP Checker OSINT - v1.3
+# 🔐 IP Checker OSINT - v1.4
 
 **IP Checker** is a professional application designed for cybersecurity IP analysis.  
 It allows you to quickly assess the reputation of IP addresses using multiple specialized services, through a clean, modern, and interactive user interface.
@@ -13,18 +13,17 @@ Users are solely responsible for complying with applicable laws in their country
 
 ---
 
-## 🆕 What's New in v1.3
+## 🆕 What's New in v1.4
 
-- ↔️ Navigation through previously scanned IPs (Back/Next buttons) :
-  - Easily move forward and backward between IPs you've already processed.
-- ✅ Removed "Skip" functionality to encourage complete IP list processing.
+- 🧩 Added "Options" menu in the navbar to prepare for future feature updates
+- 📄 Option to customize the display theme (dark/light modes and more)
+- 🛠️ Improved UI for "Choose a file" and "Start IP Checker" buttons
 
 ---
 
-
 ## 🚀 Features
 
-- Sleek dark-themed GUI (Tkinter + ttkbootstrap)
+- Sleek GUI with multiple themes available (including dark mode) using Tkinter + ttkbootstrap
 - Load a `.txt` file containing one IP address per line
 - Manual inspection of each IP through:
   - AbuseIPDB
@@ -90,7 +89,7 @@ Example `ip_list.txt`:
 ## 🛡️ Legal Notices
 
 - Software developed by illeska
-- Current version: 1.3
+- Current version: 1.4
 - Uses the following external services:
   - ttkbootstrap
   - AbuseIPDB
@@ -110,9 +109,8 @@ Example `ip_list.txt`:
 
 ### Planned tiny features for the v1 :
 
-- 📄 Option to customize the display theme (dark/light modes) *(v1.4)*
-- ➕ Integration of additional threat intelligence platforms *(v1.5)*
-- 📊 Basic statistics and visualization of results for the scanned IPs (total blocked, skipped, etc.) directly within the interface *(v1.6)*
+- 📊 Basic statistics and visualization of results for the scanned IPs (total blocked, skipped, etc.) directly within the interface *(v1.5)*
+- ➕ Integration of additional threat intelligence platforms *(v1.6)*
 - 🔍 Support for verifying domain names, in addition to IP addresses *(v1.6)*
 - 📝 Customizable file import/export settings *(v1.7)*
 - ❌ Auto-close previously opened scan tabs when a new IP is checked *(v1.8)*

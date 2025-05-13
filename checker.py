@@ -11,6 +11,7 @@ import time
 import ttkbootstrap as ttk
 import tkinter as tk
 from tkinter import filedialog, scrolledtext, messagebox
+from ttkbootstrap.style import Style 
 
 selected_file_path = None
 
@@ -24,7 +25,7 @@ def resource_path(relative_path):
 class IPCheckerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("IP Checker v1.3")
+        self.root.title("IP Checker v1.4")
         try:
             icon_path = resource_path("icon.ico")
             if os.path.exists(icon_path):
@@ -32,8 +33,8 @@ class IPCheckerGUI:
         except Exception as e:
             print(f"Note: Could not load icon: {e}")
         self.root.configure(bg="#212121")
-        self.root.geometry("800x600")
-
+        self.root.geometry("700x800")
+ 
         self.services = {
             "AbuseIPDB": {"url": "https://www.abuseipdb.com/check/{ip}", "enabled": tk.BooleanVar(value=True)},
             "AlienVault OTX": {"url": "https://otx.alienvault.com/indicator/ip/{ip}", "enabled": tk.BooleanVar(value=True)},
@@ -51,12 +52,25 @@ class IPCheckerGUI:
 
         self.top_right_frame = ttk.Frame(root)
         self.top_right_frame.pack(anchor="ne", padx=10, pady=(10, 0))
-
         self.select_button = ttk.Button(self.top_right_frame, text="Choose a file", command=self.select_file, bootstyle="primary")
-        self.select_button.pack(side="top", pady=2)
+        self.select_button.pack(padx=5)
+        self.start_button = ttk.Button(self.top_right_frame, text="Start IP Checker", command=self.start_script, state="disabled", bootstyle="success", width=30)
+        self.start_button.pack(padx=5, pady=(0, 0), ipady=10)
 
-        self.start_button = ttk.Button(self.top_right_frame, text="Start IP Checker", command=self.start_script, state="disabled", bootstyle="success", width=20)
-        self.start_button.pack(side="top", pady=2)
+        menu_bar = tk.Menu(self.root)
+        options_menu = tk.Menu(menu_bar, tearoff=0)
+        theme_menu = tk.Menu(options_menu, tearoff=0)
+        self.theme_var = tk.StringVar(value="darkly")
+        for theme in ["darkly", "flatly", "cyborg", "superhero"]:
+            theme_menu.add_radiobutton(
+                label=theme,
+                variable=self.theme_var,
+                value=theme,
+                command=lambda: self.change_theme(self.theme_var.get())
+            )
+        options_menu.add_cascade(label="Theme", menu=theme_menu)
+        menu_bar.add_cascade(label="Options", menu=options_menu)
+        self.root.config(menu=menu_bar)
 
         self.services_frame = ttk.LabelFrame(root, text="Select Services to Use", bootstyle="info")
         self.services_frame.pack(padx=10, pady=5, fill="x")
@@ -69,10 +83,10 @@ class IPCheckerGUI:
                 bootstyle="round-toggle"
             )
             cb.grid(row=i//3, column=i%3, padx=10, pady=5, sticky="w")
-        
+
         self.select_buttons_frame = ttk.Frame(self.services_frame)
         self.select_buttons_frame.grid(row=(len(self.services)-1)//3 + 1, column=0, columnspan=3, pady=5)
-        
+
         self.select_all_btn = ttk.Button(
             self.select_buttons_frame, 
             text="Select All", 
@@ -81,7 +95,7 @@ class IPCheckerGUI:
             width=12
         )
         self.select_all_btn.pack(side="left", padx=5)
-        
+
         self.deselect_all_btn = ttk.Button(
             self.select_buttons_frame, 
             text="Deselect All", 
@@ -97,14 +111,12 @@ class IPCheckerGUI:
         self.ip_display.config(state="disabled", padx=3, pady=3)
         self.ip_display.pack(padx=10, pady=(10, 0), anchor="w")
 
-        # Navigation buttons frame
         self.nav_frame = ttk.Frame(root)
         self.nav_frame.pack(padx=10, pady=3, anchor="w")
 
-        # Navigation buttons (back/next)
         self.back_button = ttk.Button(self.nav_frame, text="⬅️", command=self.previous_ip, width=3, bootstyle="info")
         self.back_button.pack(side="left", padx=5)
-        
+
         self.next_button = ttk.Button(self.nav_frame, text="➡️", command=self.go_next_ip, width=3, bootstyle="info")
         self.next_button.pack(side="left", padx=5)
 
@@ -127,11 +139,19 @@ class IPCheckerGUI:
         self.console.pack(padx=10, pady=10, fill="both", expand=True)
 
         self.file_path = None
-        self.ip_history = []  # Track navigation history
+        self.ip_history = []
         self.ip_list = []
         self.current_index = -1
         self.current_ip = None
         self.center_window()
+
+    def change_theme(self, selected_theme):
+        style = Style()
+        try:
+            style.theme_use(selected_theme)
+            self.console_log(f"Theme changed to: {selected_theme}")
+        except Exception as e:
+            self.console_log(f"Error changing theme: {e}")
 
     def select_all_services(self):
         for service in self.services.values():
@@ -157,14 +177,9 @@ class IPCheckerGUI:
             self.start_button.config(state="normal")
 
     def start_script(self):
-        # Verify at least one service is selected
         if not any(service["enabled"].get() for service in self.services.values()):
-            messagebox.showwarning(
-                "No Services Selected", 
-                "Please select at least one service to use for IP checking."
-            )
+            messagebox.showwarning("No Services Selected", "Please select at least one service to use for IP checking.")
             return
-
         globals()['selected_file_path'] = self.file_path
         self.check_ip()
 
@@ -232,15 +247,11 @@ class IPCheckerGUI:
     def check_current_ip(self):
         enabled_services = {name: data for name, data in self.services.items() if data["enabled"].get()}
         if not enabled_services:
-            messagebox.showwarning(
-                "No Services Selected", 
-                "Please select at least one service to use for IP checking."
-            )
+            messagebox.showwarning("No Services Selected", "Please select at least one service to use for IP checking.")
             return
             
         open_web(self.current_ip, enabled_services)
         self.update_ip_label(self.current_ip, self.current_index, len(self.ip_list), status="✅")
-
 
     def block_current_ip(self):
         confirm = messagebox.askyesno("Confirmation", f"Are you sure you want to block this IP?")
@@ -284,7 +295,6 @@ class IPCheckerGUI:
 
         submit_btn = ttk.Button(reason_window, text="Submit", command=submit, bootstyle="success")
         submit_btn.pack(pady=10)
-
         reason_window.bind("<Return>", submit)
 
     def write_ip_status(self, ip, status, reason):
@@ -324,18 +334,14 @@ class IPCheckerGUI:
             self.update_ip_label(self.current_ip, self.current_index, len(ip_addresses))
 
         except FileNotFoundError:
-            self.console_log("Error: ip_txt.txt file not found in the current directory")
+            self.console_log("Error: file not found.")
             messagebox.showerror("File Error", "The selected file was not found.")
-            return
         except ValueError as e:
-            self.console_log(f"Error reading IP addresses: {str(e)}")
-            self.console_log("Please ensure each line contains a valid IP address in format: xxx.xxx.xxx.xxx")
-            messagebox.showerror("Format Error", f"Error reading IP addresses: {str(e)}\nPlease ensure each line contains a valid IP address.")
-            return
+            self.console_log(f"Error reading IPs: {str(e)}")
+            messagebox.showerror("Format Error", f"Error reading IPs: {str(e)}")
         except Exception as e:
-            self.console_log(f"Unexpected error occurred while reading the file: {str(e)}")
-            messagebox.showerror("Error", f"Unexpected error occurred: {str(e)}")
-            return
+            self.console_log(f"Unexpected error: {str(e)}")
+            messagebox.showerror("Error", f"Unexpected error: {str(e)}")
 
 class PrintRedirector:
     def __init__(self, gui):
@@ -351,18 +357,13 @@ class PrintRedirector:
 def open_web(ip, enabled_services):
     print("Opening IP Checker...")
     time.sleep(1)
-    
+
     service_count = len(enabled_services)
-    current = 1
-    
-    for service_name, service_data in enabled_services.items():
-        print(f"Opening {service_name} ({current}/{service_count})...")
-        url = service_data["url"].format(ip=ip)
-        webbrowser.open(url)
-        current += 1
+    for i, (name, data) in enumerate(enabled_services.items(), 1):
+        print(f"Opening {name} ({i}/{service_count})...")
+        webbrowser.open(data["url"].format(ip=ip))
         time.sleep(0.2)
-    
-    print(f"All selected services ({service_count}) opened for IP: {ip}")
+    print(f"All {service_count} services opened for {ip}.")
 
 if __name__ == "__main__":
     root = ttk.Window(themename="darkly")
