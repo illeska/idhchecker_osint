@@ -1,4 +1,4 @@
-# 🔐 IP Checker OSINT - v1.4
+# 🔐 IP Checker OSINT - v1.5
 
 **IP Checker** is a professional application designed for cybersecurity IP analysis.  
 It allows you to quickly assess the reputation of IP addresses using multiple specialized services, through a clean, modern, and interactive user interface.
@@ -13,11 +13,10 @@ Users are solely responsible for complying with applicable laws in their country
 
 ---
 
-## 🆕 What's New in v1.4
+## 🆕 What's New in v1.5
 
-- 🧩 Added "Options" menu in the navbar to prepare for future feature updates
-- 📄 Option to customize the display theme (dark/light modes and more)
-- 🛠️ Improved UI for "Choose a file" and "Start IP Checker" buttons
+- 📊 Integrated IP statistics (blocked, safe, pending) shown inside the GUI  
+- 🎛️ Modified UI: Check IP, Block IP, and Safe IP
 
 ---
 
@@ -38,6 +37,7 @@ Users are solely responsible for complying with applicable laws in their country
 - Interactive buttons: Check / Block / Safe
 - Navigation buttons: Back / Next to move between IPs already viewed
 - Progress indicator: IP checking: ...
+- Statistics counter: total, blocked, safe, pending IPs  
 
 ---
 
@@ -74,6 +74,12 @@ The Linux executable is under development. For now, use the script version:
    - ✅ Safe it → Add `safed (reason)` in file
    - ↔️ Use **Back** or **Next** to revisit or move between IPs  
 
+6. Refer to the **statistics bar** for:
+    - Total number of IPs
+    - How many have been marked "blocked"
+    - How many are considered "safe"
+    - How many remain unprocessed  
+
 ---
 
 ## 📄 Expected File Format
@@ -89,7 +95,7 @@ Example `ip_list.txt`:
 ## 🛡️ Legal Notices
 
 - Software developed by illeska
-- Current version: 1.4
+- Current version: 1.5
 - Uses the following external services:
   - ttkbootstrap
   - AbuseIPDB
@@ -109,7 +115,6 @@ Example `ip_list.txt`:
 
 ### Planned tiny features for the v1 :
 
-- 📊 Basic statistics and visualization of results for the scanned IPs (total blocked, skipped, etc.) directly within the interface *(v1.5)*
 - ➕ Integration of additional threat intelligence platforms *(v1.6)*
 - 🔍 Support for verifying domain names, in addition to IP addresses *(v1.6)*
 - 📝 Customizable file import/export settings *(v1.7)*
