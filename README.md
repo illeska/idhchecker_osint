@@ -1,4 +1,4 @@
-# 🔐 IP Checker OSINT - v1.6
+# 🔐 IP Checker OSINT - v1.7
 
 **IP Checker** is a professional application designed for cybersecurity IP and domain analysis.  
 It allows you to quickly assess the reputation of IP addresses and domain names using multiple specialized services, through a clean, modern, and interactive user interface.
@@ -13,10 +13,10 @@ Users are solely responsible for complying with applicable laws in their country
 
 --- 
 
-## 🆕 What's New in v1.6
+## 🆕 What's New in v1.7
 
-- ➕ Integration of an additional threat intelligence platform (Cleantalk Blacklists)  
-- 🔍 Support for verifying domain names, in addition to IP addresses  
+- 🛠️ Customizable file import/export settings  
+- 🔄 Update checker added (prompts user when a new version is available)   
 
 ---
 
@@ -24,23 +24,16 @@ Users are solely responsible for complying with applicable laws in their country
 
 - Sleek GUI with multiple themes available (including dark mode) using Tkinter + ttkbootstrap  
 - Load a `.txt` file containing one IP address or domain name per line  
-- Manual inspection of each IP or domain through:
-  - AbuseIPDB  
-  - AlienVault OTX  
-  - VirusTotal  
-  - IBM X-Force Exchange  
-  - ThreatBook  
-  - Cleantalk Blacklists  
+- Manual inspection of each IP or domain
 - Block and flag IPs or domains directly in the file:
-  - `xxx.xxx.xxx.xxx blocked (reason)`
-  - `example.com blocked (reason)`
-  - `xxx.xxx.xxx.xxx safed (reason)`
+  - `xxx.xxx.xxx.xxx blocked (reason)``
   - `example.com safed (reason)`
 - Real-time console log inside the interface  
 - Interactive buttons: Check / Block / Safe  
 - Navigation buttons: Back / Next to move between already viewed entries  
 - Progress indicator: Checking...  
 - Statistics counter: total, blocked, safe, pending entries  
+- Ability to export your results into a `.csv` file  
 
 ---
 
@@ -87,7 +80,7 @@ The Linux executable is under development. For now, use the script version:
 
 ## 📄 Expected File Format
 
-Example `ip_list.txt`:
+Example `ip_dns_list.txt`:
 
 ```
 192.168.1.1  
@@ -109,18 +102,15 @@ exemple.fr
 
 ### Planned tiny features for the v1:
 
-- 📝 Customizable file import/export settings *(v1.7)*  
 - ❌ Auto-close previously opened scan tabs when a new IP is checked *(v1.8)*  
 - 🔍 Support for verifying hashes, in addition to IP addresses and domains *(v1.9)*  
 
 ---
 
-
-
 ## 🛡️ Legal Notices
 
 - Software developed by illeska  
-- Current version: 1.6  
+- Current version: 1.7 
 - Uses the following external services:
   - ttkbootstrap  
   - AbuseIPDB  

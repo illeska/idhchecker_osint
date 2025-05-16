@@ -1,9 +1,42 @@
+CURRENT_VERSION = "1.7"
+VERSION_URL = "https://raw.githubusercontent.com/illeska/ipchecker_osint/main/version.txt"
+
+
+def check_for_update():
+    try:
+        with urllib.request.urlopen(VERSION_URL) as response:
+            latest_version = response.read().decode().strip()
+            if latest_version != CURRENT_VERSION:
+                answer = messagebox.askyesno(
+                    "Update available",
+                    f"Current version: {CURRENT_VERSION}\nAvailable version: {latest_version}\n\nDo you want to download the new version?"
+                )
+                if answer:
+                    download_update(latest_version)
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to check for updates: {e}")
+
+def download_update(latest_version):
+    exe_name = f"IP Checker v{latest_version}.exe"
+    exe_url = f"https://github.com/illeska/ipchecker_osint/raw/main/dist/{exe_name.replace(' ', '%20')}"
+    new_path = os.path.join(os.path.dirname(sys.executable), exe_name)
+    try:
+        urllib.request.urlretrieve(exe_url, new_path)
+        messagebox.showinfo(
+            "Download successful",
+            f"New version downloaded successfully.\n\nPath: {new_path}\n\nPlease close this app and run the new version. You can delete this one."
+        )
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to download the update: {e}")
+
+
 import ctypes
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
 except:
     pass
 
+import urllib.request
 import os
 import sys
 import webbrowser
@@ -13,7 +46,7 @@ import tkinter as tk
 from tkinter import filedialog, scrolledtext, messagebox
 from ttkbootstrap.style import Style
 import re
-import socket
+from datetime import datetime
 
 selected_file_path = None
 
@@ -44,7 +77,7 @@ def detect_address_type(address):
 class IPCheckerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("IP Checker v1.6")
+        self.root.title("IP Checker v1.7")
 
         try:
             icon_path = resource_path("icon.ico")
@@ -82,12 +115,12 @@ class IPCheckerGUI:
 
         self.select_button = ttk.Button(self.top_right_frame, text="Choose a file", command=self.select_file, bootstyle="primary")
         self.select_button.pack(padx=5)
-
         self.start_button = ttk.Button(self.top_right_frame, text="Start Checker", command=self.start_script, state="disabled", bootstyle="success", width=30)
         self.start_button.pack(padx=5, pady=(0, 0), ipady=10)
-
         menu_bar = tk.Menu(self.root)
         options_menu = tk.Menu(menu_bar, tearoff=0)
+        
+   
         theme_menu = tk.Menu(options_menu, tearoff=0)
         self.theme_var = tk.StringVar(value="darkly")
         for theme in ["darkly", "flatly", "cyborg", "superhero"]:
@@ -98,6 +131,12 @@ class IPCheckerGUI:
                 command=lambda: self.change_theme(self.theme_var.get())
             )
         options_menu.add_cascade(label="Theme", menu=theme_menu)
+        
+
+        export_menu = tk.Menu(options_menu, tearoff=0)
+        export_menu.add_command(label="CSV", command=self.export_to_csv)
+        options_menu.add_cascade(label="Export", menu=export_menu)
+        
         menu_bar.add_cascade(label="Options", menu=options_menu)
         self.root.config(menu=menu_bar)
 
@@ -177,6 +216,53 @@ class IPCheckerGUI:
         self.current_index = -1
         self.current_address = None
         self.center_window()
+
+    def export_to_csv(self):
+        """Export the data from the current file to a CSV file"""
+        if not self.file_path:
+            messagebox.showwarning("No File Selected", "Please select a file first before exporting data.")
+            return     
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            default_name = f"ipchecker_export_{timestamp}.csv"
+            csv_path = filedialog.asksaveasfilename(
+                defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv")],
+                initialfile=default_name
+            )
+            if not csv_path:  
+                return
+            with open(self.file_path, 'r') as file:
+                lines = file.readlines()
+            rows_to_export = []
+            rows_to_export.append(["Address", "Status", "Reason"])
+            
+            for line in lines:
+                parts = line.strip().split(None, 1) 
+                address = parts[0]
+                
+                if len(parts) > 1:
+                    status_info = parts[1]
+                    status_match = re.search(r'(blocked|safed)', status_info, re.IGNORECASE)
+                    status = status_match.group(1) if status_match else ""
+                    
+                    reason_match = re.search(r'\((.*?)\)', status_info)
+                    reason = reason_match.group(1) if reason_match else ""
+                    
+                    rows_to_export.append([address, status if status else "No result yet", reason])
+                else:
+                    rows_to_export.append([address, "No result yet", ""])
+            
+            with open(csv_path, 'w', newline='', encoding='utf-8') as csv_file:
+                for row in rows_to_export:
+                    csv_file.write(f'"{row[0]}";"{row[1]}";"{row[2]}"\n')
+                    
+            self.console_log(f"Successfully exported data to {csv_path}")
+            messagebox.showinfo("Export Complete", f"Successfully exported data to CSV file:\n{csv_path}")
+            
+        except Exception as e:
+            self.console_log(f"Error exporting to CSV: {e}")
+            messagebox.showerror("Export Error", f"Failed to export data: {e}")
 
     def change_theme(self, selected_theme):
         style = Style()
@@ -451,4 +537,5 @@ if __name__ == "__main__":
     root = ttk.Window(themename="darkly")
     gui = IPCheckerGUI(root)
     sys.stdout = PrintRedirector(gui)
+    check_for_update()
     root.mainloop()
