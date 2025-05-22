@@ -1,5 +1,5 @@
 CURRENT_VERSION = "2.0"
-VERSION_URL = "https://raw.githubusercontent.com/illeska/ipchecker_osint/main/version.txt"
+VERSION_URL = "https://raw.githubusercontent.com/illeska/idhchecker_osint/main/version.txt"
 
 
 def check_for_update():
@@ -18,7 +18,7 @@ def check_for_update():
 
 def download_update(latest_version):
     exe_name = f"IP Checker v{latest_version}.exe"
-    exe_url = f"https://github.com/illeska/ipchecker_osint/raw/main/dist/{exe_name.replace(' ', '%20')}"
+    exe_url = f"https://github.com/illeska/idhchecker_osint/raw/main/dist/{exe_name.replace(' ', '%20')}"
     new_path = os.path.join(os.path.dirname(sys.executable), exe_name)
     try:
         urllib.request.urlretrieve(exe_url, new_path)
@@ -372,7 +372,7 @@ class IPCheckerGUI:
             return     
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            default_name = f"ipchecker_export_{timestamp}.csv"
+            default_name = f"idhchecker_export_{timestamp}.csv"
             csv_path = filedialog.asksaveasfilename(
                 defaultextension=".csv",
                 filetypes=[("CSV files", "*.csv")],
