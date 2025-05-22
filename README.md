@@ -1,31 +1,42 @@
-# 🔐 IP Checker OSINT - v1.7
+<h1 align="center">IDH Checker v2.0</h1>
+<p align="center">
+IP Addresses, Domain Names and Hashes Checker - via OSint 
+</p>
 
-**IP Checker** is a professional application designed for cybersecurity IP and domain analysis.  
-It allows you to quickly assess the reputation of IP addresses and domain names using multiple specialized services, through a clean, modern, and interactive user interface.
-
----
-
-## ⚠️ Disclaimer
-
-**This project is intended for educational or professional/legal use only.**  
-The author is not responsible for any illegal or malicious use.  
-Users are solely responsible for complying with applicable laws in their country or organization.
-
---- 
-
-## 🆕 What's New in v1.7
-
-- 🛠️ Customizable file import/export settings  
-- 🔄 Update checker added (prompts user when a new version is available)   
 
 ---
+> **⚠️ Disclaimer**  
+> This tool is intended for **ethical** and **legal** usage only. The author is not responsible for any illegal or malicious activities conducted with this tool. Always ensure compliance with local laws and regulations regarding cybersecurity and data privacy
 
-## 🚀 Features
+## 💡 What is IDH Checker?
+**IDH Checker** is a professional tool for cybersecurity experts, network administrators, and threat analysts to quickly assess the **reputation** and **integrity** of **IP addresses**, **domain names**, and **file hashes**. The tool leverages multiple **OSINT (Open Source Intelligence)** services to gather comprehensive information about these elements, helping users identify potential risks and malicious entities.
+
+- **IP addresses**: Check the reputation and security risks associated with an IP.
+- **Domain names**: Analyze the reputation, age, and other factors of a domain.
+- **Hashes**: Validate the integrity of files and identify known malicious files using hash values (MD5, SHA-1, SHA-256).
+
+
+
+
+
+
+## 🆕 What's New in v2.0
+
+- 🔍 Support for verifying hashes, in addition to IP addresses and domains  
+- 🆔 Software name change to reflect expanded functionality  
+- ⏪⏩ New UI elements like Back and Next navigation buttons  
+- 🎨 New logo and a cleaner interface with improved layout and theme integration  
+
+**⚠️ Bad News / Known Limitation ⚠️**  
+> ❌ We’ve reported this: **Tabs from previous scans are not auto-closed** when checking a new IP or domain or hash.  
+> This will be addressed in a **future release**.
+
+## 🛠 Features
 
 - Sleek GUI with multiple themes available (including dark mode) using Tkinter + ttkbootstrap  
-- Load a `.txt` file containing one IP address or domain name per line  
-- Manual inspection of each IP or domain
-- Block and flag IPs or domains directly in the file:
+- Load a `.txt` file containing one IP address or domain name or hash per line  
+- Manual inspection of each IP or domain or hash
+- Block and flag IPs or domains or hash directly in the file:
   - `xxx.xxx.xxx.xxx blocked (reason)``
   - `example.com safed (reason)`
 - Real-time console log inside the interface  
@@ -40,7 +51,7 @@ Users are solely responsible for complying with applicable laws in their country
 ## 📦 Installation
 
 ### 💻 Windows
-1. Download the `IP Checker.exe` file from the releases section  
+1. Download the `IDH Checker.exe` file from the releases section  
 2. Double-click the executable to launch the application (no installation required)  
 
 ### 🐧 Linux
@@ -54,15 +65,15 @@ The Linux executable is under development. For now, use the script version:
 
 ---
 
-## 📋 How to Use IP Checker
+## 📋 How to Use IDH Checker
 
 1. Launch the application (double-click the executable or run the script)  
 
 2. Select which services you want to use via the checkboxes  
 
-3. Click "Choose a file" and select a `.txt` file with **IP addresses or domain names** (one per line)  
+3. Click "Choose a file" and select a `.txt` file with **IP addresses or Domain names or Hashes** (one per line)  
 
-4. Click "Start IP Checker"  
+4. Click "Start IDH Checker"  
 
 5. For each entry (IP or domain), choose:  
    - ✅ Check this IP/Domain → Opens all selected scanning websites in your browser  
@@ -76,17 +87,17 @@ The Linux executable is under development. For now, use the script version:
     - How many are considered "safe"  
     - How many remain unprocessed  
 
----
+
 
 ## 📄 Expected File Format
 
-Example `ip_dns_list.txt`:
+Example `idh_list.txt`:
 
 ```
 192.168.1.1  
 example.com
-8.8.8.8  
-exemple.fr
+c0202cf6...
+
 ```
 
 ---
@@ -95,22 +106,29 @@ exemple.fr
 
 ### Planned big features for future versions:
 
-- 🔄 Software name change to reflect expanded functionality *(v2.0)*  
-- 🌐 Multi-language Support *(v2.x)*  
+- 🔀 Transition from one service interface to another *(v3.0)*
 - 🎯 Possible integration of WHOIS auto-lookup to enrich IP data with ASN, domain, geolocation, etc. *(v3.x)*  
 - 📊 Display IP analysis results directly in the interface, powered by API integration *(v4.x)*  
 
-### Planned tiny features for the v1:
+### Planned tiny features for the v2:
+- 🔄 Make the "service to use" scrollable *(v2.1)*
+- 📊 Improve the stats box *(v2.2)*
+- ⏳ Add all-time stats in the options *(v2.3)*
+- 🌐 French language Support *(v2.4)*
+- ⚙️ Have a preset for "services to use" when the user modifies it *(v2.5)*
+- 🖋️ Sign the file by adding date, time, and author during export *(v2.6)*
+- 📁 Excel input in "choose a file" *(v2.7)*
+- 🌐 Arabic language Support *(v2.8)*
+- ❌ Auto-close previously opened scan tabs when a new IP is checked *(v2.9)*  
 
-- ❌ Auto-close previously opened scan tabs when a new IP is checked *(v1.8)*  
-- 🔍 Support for verifying hashes, in addition to IP addresses and domains *(v1.9)*  
+  
 
 ---
 
 ## 🛡️ Legal Notices
 
 - Software developed by illeska  
-- Current version: 1.7 
+- Current version: 2.0
 - Uses the following external services:
   - ttkbootstrap  
   - AbuseIPDB  
@@ -120,11 +138,15 @@ exemple.fr
   - ThreatBook  
   - Cleantalk Blacklists  
 
----
 
-## 📬 Contact
+
+## 🎨 Contributing
+We welcome contributions! If you want to improve this project or fix any bugs, feel free to fork the repository and submit a pull request.
+
+## 📞 Contact
+
 
 For suggestions or questions:  
 DM ME.  
-# ipchecker_osint
+# idhchecker_osint
 

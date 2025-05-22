@@ -1,4 +1,4 @@
-CURRENT_VERSION = "1.7"
+CURRENT_VERSION = "2.0"
 VERSION_URL = "https://raw.githubusercontent.com/illeska/ipchecker_osint/main/version.txt"
 
 
@@ -66,18 +66,37 @@ def is_valid_ip(address):
 def is_valid_domain(address):
     return '.' in address and ' ' not in address and not is_valid_ip(address)
 
+def is_valid_hash(address):
+    if re.match(r'^[a-fA-F0-9]{32}$', address):
+        return True
+    if re.match(r'^[a-fA-F0-9]{40}$', address):
+        return True
+    if re.match(r'^[a-fA-F0-9]{64}$', address):
+        return True
+    return False
+
 def detect_address_type(address):
     if is_valid_ip(address):
         return "ip"
     elif is_valid_domain(address):
         return "dns"
+    elif is_valid_hash(address):
+        return "hash"
     else:
         return "unknown"
 
 class IPCheckerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("IP Checker v1.7")
+        self.root.title("IDH Checker v2.0")
+
+        
+        self.fonts = {
+            "title": ("Poppins", 20, "bold"),
+            "subtitle": ("Poppins", 12, "bold"),
+            "normal": ("Poppins", 10),
+            "console": ("Consolas", 9)
+        }
 
         try:
             icon_path = resource_path("icon.ico")
@@ -86,8 +105,9 @@ class IPCheckerGUI:
         except Exception as e:
             print(f"Note: Could not load icon: {e}")
 
-        self.root.configure(bg="#212121")
-        self.root.geometry("700x850")
+        style = Style(theme="cyborg")
+        self.root.after(0, self.center_window)
+        self.center_window()
 
         self.services = {
             "AbuseIPDB": {"url": "https://www.abuseipdb.com/check/{ip}", "enabled": tk.BooleanVar(value=True)},
@@ -106,24 +126,56 @@ class IPCheckerGUI:
             "ThreatBook": {"url": "https://threatbook.io/domain/{dns}", "enabled": tk.BooleanVar(value=True)},
             "CleanTalk": {"url": "https://cleantalk.org/blacklists/{dns}", "enabled": tk.BooleanVar(value=True)}
         }
+        
+        self.services_hash = {
+            "VirusTotal": {"url": "https://www.virustotal.com/gui/file/{hash}", "enabled": tk.BooleanVar(value=True)},
+            "IBM X-Force": {"url": "https://exchange.xforce.ibmcloud.com/malware/{hash}", "enabled": tk.BooleanVar(value=True)},
+            "AlienVault OTX": {"url": "https://otx.alienvault.com/indicator/file/{hash}", "enabled": tk.BooleanVar(value=True)}
+        }
 
-        self.title_label = tk.Label(self.root, text="IP & DNS CHECKER", font=("Courier New", 24, "bold"))
-        self.title_label.pack(anchor="w", padx=10, pady=(2, 0))
+        self.header_frame = tk.Frame(self.root, height=60)
+        self.header_frame.pack(fill="x", pady=(0, 15))
+        
+        self.title_label = tk.Label(
+            self.header_frame, 
+            text="IP, DNS & HASH CHECKER", 
+            font=self.fonts["title"],
+            pady=10
+        )
+        self.title_label.pack(side="left", padx=20)
 
-        self.top_right_frame = ttk.Frame(root)
-        self.top_right_frame.pack(anchor="ne", padx=10, pady=(10, 0))
+        self.main_frame = tk.Frame(self.root, padx=15, pady=15)
+        self.main_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+        
+        self.top_actions_frame = tk.Frame(self.main_frame)
+        self.top_actions_frame.pack(fill="x", pady=(0, 10))
+        
+        self.select_button = ttk.Button(
+            self.top_actions_frame, 
+            text="📁 Choose a file", 
+            command=self.select_file, 
+            bootstyle="primary-outline",
+            width=15
+        )
+        self.select_button.pack(side="left", padx=(0, 10), ipady=5)
+        
+        self.start_button = ttk.Button(
+            self.top_actions_frame, 
+            text="▶️ Start Checker", 
+            command=self.start_script, 
+            state="disabled", 
+            bootstyle="success",
+            width=20
+        )
+        self.start_button.pack(side="left", ipady=5)
 
-        self.select_button = ttk.Button(self.top_right_frame, text="Choose a file", command=self.select_file, bootstyle="primary")
-        self.select_button.pack(padx=5)
-        self.start_button = ttk.Button(self.top_right_frame, text="Start Checker", command=self.start_script, state="disabled", bootstyle="success", width=30)
-        self.start_button.pack(padx=5, pady=(0, 0), ipady=10)
+
         menu_bar = tk.Menu(self.root)
         options_menu = tk.Menu(menu_bar, tearoff=0)
         
-   
         theme_menu = tk.Menu(options_menu, tearoff=0)
-        self.theme_var = tk.StringVar(value="darkly")
-        for theme in ["darkly", "flatly", "cyborg", "superhero"]:
+        self.theme_var = tk.StringVar(value="superhero")  
+        for theme in ["superhero", "cosmo", "cyborg", "darkly", "minty", "solar", "united"]:
             theme_menu.add_radiobutton(
                 label=theme,
                 variable=self.theme_var,
@@ -132,7 +184,6 @@ class IPCheckerGUI:
             )
         options_menu.add_cascade(label="Theme", menu=theme_menu)
         
-
         export_menu = tk.Menu(options_menu, tearoff=0)
         export_menu.add_command(label="CSV", command=self.export_to_csv)
         options_menu.add_cascade(label="Export", menu=export_menu)
@@ -140,20 +191,28 @@ class IPCheckerGUI:
         menu_bar.add_cascade(label="Options", menu=options_menu)
         self.root.config(menu=menu_bar)
 
-        self.services_frame = ttk.LabelFrame(root, text="Select Services to Use", bootstyle="info")
-        self.services_frame.pack(padx=10, pady=5, fill="x")
+        self.services_frame = ttk.LabelFrame(
+            self.main_frame, 
+            text="Services", 
+            bootstyle="primary",
+            padding=10
+        )
+        self.services_frame.pack(fill="x", pady=10)
 
+        services_grid = ttk.Frame(self.services_frame)
+        services_grid.pack(fill="x")
+        
         for i, (service_name, service_data) in enumerate(self.services.items()):
             cb = ttk.Checkbutton(
-                self.services_frame,
+                services_grid,
                 text=service_name,
                 variable=service_data["enabled"],
-                bootstyle="round-toggle"
+                bootstyle="round-toggle-primary"
             )
             cb.grid(row=i // 3, column=i % 3, padx=10, pady=5, sticky="w")
 
         self.select_buttons_frame = ttk.Frame(self.services_frame)
-        self.select_buttons_frame.grid(row=(len(self.services) - 1) // 3 + 1, column=0, columnspan=3, pady=5)
+        self.select_buttons_frame.pack(pady=(5, 0), anchor="e")
 
         self.select_all_btn = ttk.Button(
             self.select_buttons_frame,
@@ -162,7 +221,7 @@ class IPCheckerGUI:
             bootstyle="info-outline",
             width=12
         )
-        self.select_all_btn.pack(side="left", padx=5)
+        self.select_all_btn.pack(side="left", padx=5, ipady=3)
 
         self.deselect_all_btn = ttk.Button(
             self.select_buttons_frame,
@@ -171,43 +230,133 @@ class IPCheckerGUI:
             bootstyle="info-outline",
             width=12
         )
-        self.deselect_all_btn.pack(side="left", padx=5)
+        self.deselect_all_btn.pack(side="left", padx=5, ipady=3)
 
-        self.address_display = tk.Text(root, height=2, width=50, bg="#1e1e1e", fg="#f0f0f0", bd=0, highlightthickness=0)
-        self.address_display.tag_configure("bold", font=("Segoe UI", 10, "bold"))
-        self.address_display.tag_configure("normal", font=("Segoe UI", 10))
-        self.address_display.config(state="disabled", padx=3, pady=3)
-        self.address_display.pack(padx=10, pady=(10, 0), anchor="w")
 
-        self.nav_frame = ttk.Frame(root)
-        self.nav_frame.pack(padx=10, pady=3, anchor="w")
+        self.address_container = tk.Frame(self.main_frame, pady=10)
+        self.address_container.pack(fill="x")
+        
+        self.address_label = tk.Label(
+            self.address_container, 
+            text="Current Entry:", 
+            font=self.fonts["subtitle"],
+        )
+        self.address_label.pack(anchor="w")
+        
+        self.address_display = tk.Text(
+            self.address_container, 
+            height=1, 
+            width=50, 
+            bd=0, 
+            highlightthickness=1,
+            font=self.fonts["normal"],
+            relief="flat",
+            padx=10,
+            pady=5
+        )
+        self.address_display.tag_configure("bold", font=(self.fonts["normal"][0], self.fonts["normal"][1], "bold"))
+        self.address_display.tag_configure("normal", font=self.fonts["normal"])
+        self.address_display.config(state="disabled")
+        self.address_display.pack(fill="x", pady=(5, 0))
 
-        self.back_button = ttk.Button(self.nav_frame, text="⬅️", command=self.previous_address, width=3, bootstyle="info")
-        self.back_button.pack(side="left", padx=5)
 
-        self.next_button = ttk.Button(self.nav_frame, text="➡️", command=self.go_next_address, width=3, bootstyle="info")
-        self.next_button.pack(side="left", padx=5)
+        self.action_nav_frame = tk.Frame(self.main_frame)
+        self.action_nav_frame.pack(fill="x", pady=10)
+        
+        self.nav_frame = ttk.Frame(self.action_nav_frame)
+        self.nav_frame.pack(side="left")
 
-        self.button_frame = ttk.Frame(root)
-        self.button_frame.pack(padx=10, pady=5, anchor="w")
+        self.back_button = ttk.Button(
+            self.nav_frame, 
+            text="⏪", 
+            command=self.previous_address, 
+            width=5,
+            bootstyle="primary-outline"
+        )
+        self.back_button.pack(side="left", padx=(0, 10), ipady=5)
 
-        self.check_button = ttk.Button(self.button_frame, text="Check Entry", command=self.check_current_address, bootstyle="primary", width=15)
-        self.check_button.pack(side="left", padx=5)
+        self.next_button = ttk.Button(
+            self.nav_frame, 
+            text="⏭️", 
+            command=self.go_next_address, 
+            width=5,
+            bootstyle="primary-outline"
+        )
+        self.next_button.pack(side="left", ipady=5)
 
-        self.block_button = ttk.Button(self.button_frame, text="Block Entry", command=self.block_current_address, bootstyle="danger")
-        self.block_button.pack(side="left", padx=5)
+        self.button_frame = ttk.Frame(self.action_nav_frame)
+        self.button_frame.pack(side="right")
 
-        self.safe_button = ttk.Button(self.button_frame, text="Safe Entry", command=self.safe_current_address, bootstyle="success")
-        self.safe_button.pack(side="left", padx=5)
 
-        self.stats_label = tk.Label(root, text="", fg="white", bg="#212121", font=("Segoe UI", 8, "italic"))
-        self.stats_label.pack(anchor="w", padx=10, pady=(0, 5))
+        self.check_button = ttk.Button(
+            self.button_frame, 
+            text="🔍 Check", 
+            command=self.check_current_address, 
+            bootstyle="primary", 
+            width=12
+        )
+        self.check_button.pack(side="left", padx=5, ipady=5)
+
+        self.safe_button = ttk.Button(
+            self.button_frame, 
+            text="✅ Safe", 
+            command=self.safe_current_address, 
+            bootstyle="success", 
+            width=12
+        )
+        self.safe_button.pack(side="left", padx=5, ipady=5)
+        
+        self.block_button = ttk.Button(
+            self.button_frame, 
+            text="❌ Block", 
+            command=self.block_current_address, 
+            bootstyle="danger", 
+            width=12
+        )
+        self.block_button.pack(side="left", padx=5, ipady=5)
+
+
+        self.stats_label = tk.Label(
+            self.main_frame, 
+            text="",  
+            font=("Poppins", 8, "italic")
+        )
+        self.stats_label.pack(anchor="w", pady=(0, 5))
+
+
+        self.console_frame = tk.Frame(
+            self.main_frame, 
+            padx=1, 
+            pady=1
+        )
+        self.console_frame.pack(fill="both", expand=True)
+        
+        self.console = scrolledtext.ScrolledText(
+            self.console_frame, 
+            width=80, 
+            height=18,  
+            state='disabled',  
+            insertbackground="white",
+            font=self.fonts["console"],
+            padx=10,
+            pady=10,
+            relief="flat"
+        )
+        self.console.pack(fill="both", expand=True)
+
+        self.status_bar = tk.Label(
+            self.root, 
+            text="Ready", 
+            bd=1, 
+            relief=tk.SUNKEN, 
+            anchor=tk.W,
+            font=("Poppins", 8),
+            padx=10
+        )
+        self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.disable_action_buttons()
         self.disable_navigation_buttons()
-
-        self.console = scrolledtext.ScrolledText(root, width=100, height=25, state='disabled', bg="#1e1e1e", fg="#f0f0f0", insertbackground="white")
-        self.console.pack(padx=10, pady=10, fill="both", expand=True)
 
         self.file_path = None
         self.address_history = []
@@ -215,7 +364,6 @@ class IPCheckerGUI:
         self.address_types = {}  
         self.current_index = -1
         self.current_address = None
-        self.center_window()
 
     def export_to_csv(self):
         """Export the data from the current file to a CSV file"""
@@ -235,11 +383,12 @@ class IPCheckerGUI:
             with open(self.file_path, 'r') as file:
                 lines = file.readlines()
             rows_to_export = []
-            rows_to_export.append(["Address", "Status", "Reason"])
+            rows_to_export.append(["Address", "Type", "Status", "Reason"])
             
             for line in lines:
                 parts = line.strip().split(None, 1) 
                 address = parts[0]
+                address_type = self.address_types.get(address, "unknown")
                 
                 if len(parts) > 1:
                     status_info = parts[1]
@@ -249,13 +398,13 @@ class IPCheckerGUI:
                     reason_match = re.search(r'\((.*?)\)', status_info)
                     reason = reason_match.group(1) if reason_match else ""
                     
-                    rows_to_export.append([address, status if status else "No result yet", reason])
+                    rows_to_export.append([address, address_type, status if status else "No result yet", reason])
                 else:
-                    rows_to_export.append([address, "No result yet", ""])
+                    rows_to_export.append([address, address_type, "No result yet", ""])
             
             with open(csv_path, 'w', newline='', encoding='utf-8') as csv_file:
                 for row in rows_to_export:
-                    csv_file.write(f'"{row[0]}";"{row[1]}";"{row[2]}"\n')
+                    csv_file.write(f'"{row[0]}";"{row[1]}";"{row[2]}";"{row[3]}"\n')
                     
             self.console_log(f"Successfully exported data to {csv_path}")
             messagebox.showinfo("Export Complete", f"Successfully exported data to CSV file:\n{csv_path}")
@@ -280,13 +429,12 @@ class IPCheckerGUI:
         for service in self.services.values():
             service["enabled"].set(False)
 
-    def center_window(self):
-        self.root.update_idletasks()
-        w = self.root.winfo_width()
-        h = self.root.winfo_height()
-        x = (self.root.winfo_screenwidth() // 2) - (w // 2)
-        y = (self.root.winfo_screenheight() // 2) - (h // 2)
-        self.root.geometry(f"+{x}+{y}")
+    def center_window(self, width=650, height=750):
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width // 2) - (width // 2)
+        y = (screen_height // 2) - (height // 2)
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
 
     def select_file(self):
         file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
@@ -312,7 +460,14 @@ class IPCheckerGUI:
         self.address_display.config(state="normal")
         self.address_display.delete("1.0", "end")
         
-        type_display = "IP" if address_type == "ip" else "Domain"
+        if address_type == "ip":
+            type_display = "IP"
+        elif address_type == "dns":
+            type_display = "Domain"
+        elif address_type == "hash":
+            type_display = "Hash"
+        else:
+            type_display = "Unknown"
         
         self.address_display.insert("end", f"{status} {type_display} checking: ", "normal")
         self.address_display.insert("end", f"{address}", "bold")
@@ -345,7 +500,16 @@ class IPCheckerGUI:
             self.current_address = self.address_list[self.current_index]
             address_type = self.address_types[self.current_address]
             self.update_address_label(self.current_address, address_type, self.current_index, len(self.address_list))
-            type_display = "IP" if address_type == "ip" else "Domain"
+            
+            if address_type == "ip":
+                type_display = "IP"
+            elif address_type == "dns":
+                type_display = "Domain"
+            elif address_type == "hash":
+                type_display = "Hash"
+            else:
+                type_display = "Unknown"
+                
             self.console_log(f"Navigated back to {type_display}: {self.current_address}")
 
     def go_next_address(self):
@@ -354,7 +518,16 @@ class IPCheckerGUI:
             self.current_address = self.address_list[self.current_index]
             address_type = self.address_types[self.current_address]
             self.update_address_label(self.current_address, address_type, self.current_index, len(self.address_list))
-            type_display = "IP" if address_type == "ip" else "Domain"
+            
+            if address_type == "ip":
+                type_display = "IP"
+            elif address_type == "dns":
+                type_display = "Domain"
+            elif address_type == "hash":
+                type_display = "Hash"
+            else:
+                type_display = "Unknown"
+                
             self.console_log(f"Navigated forward to {type_display}: {self.current_address}")
         elif self.current_index == len(self.address_list) - 1:
             if messagebox.askyesno("Confirmation", "This is the last entry, are you sure to end it?"):
@@ -371,8 +544,19 @@ class IPCheckerGUI:
         
         if address_type == "ip":
             enabled_services = {name: data for name, data in self.services.items() if data["enabled"].get()}
-        else:  
+        elif address_type == "dns":  
             enabled_services = {name: data for name, data in self.services_dns.items() if data["enabled"].get()}
+        elif address_type == "hash":
+            messagebox.showinfo(
+                "Hash Checker",
+                "Les services suivants sont disponibles pour la vérification des hashes:\n\n" +
+                "- VirusTotal: https://www.virustotal.com/gui/file/{hash}\n" +
+                "- IBM X-Force: https://exchange.xforce.ibmcloud.com/malware/{hash}\n" +
+                "- AlienVault OTX: https://otx.alienvault.com/indicator/file/{hash}"
+            )
+            enabled_services = {name: data for name, data in self.services_hash.items() if data["enabled"].get()}
+        else:
+            enabled_services = {}
             
         if not enabled_services:
             messagebox.showwarning("No Services Selected", "Please select at least one service for checking.")
@@ -383,7 +567,15 @@ class IPCheckerGUI:
 
     def block_current_address(self):
         address_type = self.address_types[self.current_address]
-        type_display = "IP" if address_type == "ip" else "Domain"
+        
+        if address_type == "ip":
+            type_display = "IP"
+        elif address_type == "dns":
+            type_display = "Domain"
+        elif address_type == "hash":
+            type_display = "Hash"
+        else:
+            type_display = "Unknown"
         
         if messagebox.askyesno("Confirmation", f"Are you sure you want to block this {type_display}?"):
             self.disable_action_buttons()
@@ -391,7 +583,15 @@ class IPCheckerGUI:
 
     def safe_current_address(self):
         address_type = self.address_types[self.current_address]
-        type_display = "IP" if address_type == "ip" else "Domain"
+        
+        if address_type == "ip":
+            type_display = "IP"
+        elif address_type == "dns":
+            type_display = "Domain"
+        elif address_type == "hash":
+            type_display = "Hash"
+        else:
+            type_display = "Unknown"
         
         if messagebox.askyesno("Confirmation", f"Are you sure you want to mark this {type_display} as safe?"):
             self.disable_action_buttons()
@@ -400,7 +600,15 @@ class IPCheckerGUI:
     def ask_reason(self, action_type, address):
         reason_window = tk.Toplevel(self.root)
         address_type = self.address_types[address]
-        type_display = "IP" if address_type == "ip" else "Domain"
+        
+        if address_type == "ip":
+            type_display = "IP"
+        elif address_type == "dns":
+            type_display = "Domain"
+        elif address_type == "hash":
+            type_display = "Hash"
+        else:
+            type_display = "Unknown"
         
         reason_window.title(f"{action_type.capitalize()} Reason")
         reason_window.geometry("400x150")
@@ -470,7 +678,7 @@ class IPCheckerGUI:
                 for addr in addresses:
                     addr_type = detect_address_type(addr)
                     if addr_type == "unknown":
-                        self.console_log(f"Warning: '{addr}' is neither a valid IP nor a domain name. Treating as domain.")
+                        self.console_log(f"Warning: '{addr}' is neither a valid IP, domain name, nor hash. Treating as domain.")
                         addr_type = "dns"  
                     self.address_types[addr] = addr_type
                 
@@ -481,8 +689,10 @@ class IPCheckerGUI:
                 
 
                 ip_count = sum(1 for addr_type in self.address_types.values() if addr_type == "ip")
-                dns_count = len(self.address_types) - ip_count
-                self.console_log(f"Detected {ip_count} IP addresses and {dns_count} domain names.")
+                dns_count = sum(1 for addr_type in self.address_types.values() if addr_type == "dns")
+                hash_count = sum(1 for addr_type in self.address_types.values() if addr_type == "hash")
+                
+                self.console_log(f"Detected {ip_count} IP addresses, {dns_count} domain names, and {hash_count} hashes.")
                 
                 self.update_stats()
 
@@ -524,17 +734,25 @@ def open_web(address, address_type, enabled_services):
             webbrowser.open(data["url"].format(ip=address))
             time.sleep(0.2)
         print(f"All services opened for IP: {address}.")
-    else: 
+    elif address_type == "dns": 
         print("Opening Domain Checker...")
         time.sleep(1)
         for i, (name, data) in enumerate(enabled_services.items(), 1):
             print(f"Opening {name} ({i}/{len(enabled_services)})...")
             webbrowser.open(data["url"].format(dns=address))
             time.sleep(0.2)
-        print(f"All services opened for domain: {address}.")
+        print(f"All services opened for Domain: {address}.")
+    elif address_type == "hash":
+        print("Opening Hash Checker...")
+        time.sleep(1)
+        for i, (name, data) in enumerate(enabled_services.items(), 1):
+            print(f"Opening {name} ({i}/{len(enabled_services)})...")
+            webbrowser.open(data["url"].format(hash=address))
+            time.sleep(0.2)
+        print(f"All services opened for Hash: {address}.")
 
 if __name__ == "__main__":
-    root = ttk.Window(themename="darkly")
+    root = ttk.Window(themename="superhero")
     gui = IPCheckerGUI(root)
     sys.stdout = PrintRedirector(gui)
     check_for_update()
