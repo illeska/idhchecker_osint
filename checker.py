@@ -1,4 +1,4 @@
-CURRENT_VERSION = "2.0"
+CURRENT_VERSION = "2.1"
 VERSION_URL = "https://raw.githubusercontent.com/illeska/idhchecker_osint/main/version.txt"
 
 
@@ -17,7 +17,7 @@ def check_for_update():
         messagebox.showerror("Error", f"Failed to check for updates: {e}")
 
 def download_update(latest_version):
-    exe_name = f"IP Checker v{latest_version}.exe"
+    exe_name = f"IDH Checker v{latest_version}.exe"
     exe_url = f"https://github.com/illeska/idhchecker_osint/raw/main/dist/{exe_name.replace(' ', '%20')}"
     new_path = os.path.join(os.path.dirname(sys.executable), exe_name)
     try:
@@ -88,7 +88,7 @@ def detect_address_type(address):
 class IPCheckerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("IDH Checker v2.0")
+        self.root.title("IDH Checker v2.1")
 
         
         self.fonts = {
@@ -169,7 +169,7 @@ class IPCheckerGUI:
         )
         self.start_button.pack(side="left", ipady=5)
 
-
+        
         menu_bar = tk.Menu(self.root)
         options_menu = tk.Menu(menu_bar, tearoff=0)
         
@@ -191,28 +191,51 @@ class IPCheckerGUI:
         menu_bar.add_cascade(label="Options", menu=options_menu)
         self.root.config(menu=menu_bar)
 
-        self.services_frame = ttk.LabelFrame(
-            self.main_frame, 
-            text="Services", 
-            bootstyle="primary",
-            padding=10
-        )
-        self.services_frame.pack(fill="x", pady=10)
+        self.services_container = ttk.Frame(self.main_frame)
+        self.services_container.pack(fill="x", pady=10)
 
-        services_grid = ttk.Frame(self.services_frame)
-        services_grid.pack(fill="x")
-        
+        self.services_toggle_btn = ttk.Button(
+            self.services_container,
+            text="► Services to Use",
+            command=self.toggle_services,
+            bootstyle="link"
+        )
+        self.services_toggle_btn.pack(anchor="w")
+
+        self.services_frame = ttk.LabelFrame(
+            self.services_container,
+            text="",  
+            bootstyle="primary",
+            padding=(10, 5)
+)
+        self.services_visible = False
+
+        self.services_canvas = tk.Canvas(self.services_frame, height=120, highlightthickness=0)
+        self.services_scrollbar = ttk.Scrollbar(self.services_frame, orient="vertical", command=self.services_canvas.yview)
+        self.services_scrollable_frame = ttk.Frame(self.services_canvas)
+
+        self.services_scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.services_canvas.configure(scrollregion=self.services_canvas.bbox("all"))
+        )
+        self.services_canvas.create_window((0, 0), window=self.services_scrollable_frame, anchor="nw")
+        self.services_canvas.configure(yscrollcommand=self.services_scrollbar.set)
+
+        self.services_canvas.pack(side="left", fill="x", expand=True)
+        self.services_scrollbar.pack(side="right", fill="y")
+
         for i, (service_name, service_data) in enumerate(self.services.items()):
             cb = ttk.Checkbutton(
-                services_grid,
+                self.services_scrollable_frame,
                 text=service_name,
                 variable=service_data["enabled"],
-                bootstyle="round-toggle-primary"
+                bootstyle="success"
             )
             cb.grid(row=i // 3, column=i % 3, padx=10, pady=5, sticky="w")
 
-        self.select_buttons_frame = ttk.Frame(self.services_frame)
-        self.select_buttons_frame.pack(pady=(5, 0), anchor="e")
+
+        self.select_buttons_frame = ttk.Frame(self.services_scrollable_frame)
+        self.select_buttons_frame.grid(column=0, row=(len(self.services) // 3 + 1), columnspan=3, pady=(10, 0), sticky="e")
 
         self.select_all_btn = ttk.Button(
             self.select_buttons_frame,
@@ -231,6 +254,7 @@ class IPCheckerGUI:
             width=12
         )
         self.deselect_all_btn.pack(side="left", padx=5, ipady=3)
+
 
 
         self.address_container = tk.Frame(self.main_frame, pady=10)
@@ -413,6 +437,17 @@ class IPCheckerGUI:
             self.console_log(f"Error exporting to CSV: {e}")
             messagebox.showerror("Export Error", f"Failed to export data: {e}")
 
+    def toggle_services(self):
+        if self.services_visible:
+            self.services_frame.pack_forget()
+            self.services_toggle_btn.config(text="► Services to Use")
+        else:
+            self.services_frame.pack(fill="x", pady=(0, 5))
+            self.services_toggle_btn.config(text="▼ Services to Use")
+        self.services_visible = not self.services_visible
+
+
+
     def change_theme(self, selected_theme):
         style = Style()
         try:
@@ -549,10 +584,10 @@ class IPCheckerGUI:
         elif address_type == "hash":
             messagebox.showinfo(
                 "Hash Checker",
-                "Les services suivants sont disponibles pour la vérification des hashes:\n\n" +
-                "- VirusTotal: https://www.virustotal.com/gui/file/{hash}\n" +
-                "- IBM X-Force: https://exchange.xforce.ibmcloud.com/malware/{hash}\n" +
-                "- AlienVault OTX: https://otx.alienvault.com/indicator/file/{hash}"
+                "Only these services are available for hash checking:\n\n" +
+                "- VirusTotal" +
+                "- IBM X-Force" +
+                "- AlienVault OTX \n\n"
             )
             enabled_services = {name: data for name, data in self.services_hash.items() if data["enabled"].get()}
         else:

@@ -1,4 +1,4 @@
-<h1 align="center">IDH Checker v2.0</h1>
+<h1 align="center">IDH Checker v2.1</h1>
 <p align="center">
 IP Addresses, Domain Names and Hashes Checker - via OSint 
 </p>
@@ -20,16 +20,10 @@ IP Addresses, Domain Names and Hashes Checker - via OSint
 
 
 
-## 🆕 What's New in v2.0
+## 🆕 What's New in v2.1
 
-- 🔍 Support for verifying hashes, in addition to IP addresses and domains  
-- 🆔 Software name change to reflect expanded functionality  
-- ⏪⏩ New UI elements like Back and Next navigation buttons  
-- 🎨 New logo and a cleaner interface with improved layout and theme integration  
+- 🔄 Make the "service to use" scrollable
 
-**⚠️ Bad News / Known Limitation ⚠️**  
-> ❌ We’ve reported this: **Tabs from previous scans are not auto-closed** when checking a new IP or domain or hash.  
-> This will be addressed in a **future release**.
 
 ## 🛠 Features
 
@@ -111,7 +105,6 @@ c0202cf6...
 - 📊 Display IP analysis results directly in the interface, powered by API integration *(v4.x)*  
 
 ### Planned tiny features for the v2:
-- 🔄 Make the "service to use" scrollable *(v2.1)*
 - 📊 Improve the stats box *(v2.2)*
 - ⏳ Add all-time stats in the options *(v2.3)*
 - 🌐 French language Support *(v2.4)*
@@ -128,7 +121,7 @@ c0202cf6...
 ## 🛡️ Legal Notices
 
 - Software developed by illeska  
-- Current version: 2.0
+- Current version: 2.1
 - Uses the following external services:
   - ttkbootstrap  
   - AbuseIPDB  
