@@ -1,4 +1,4 @@
-CURRENT_VERSION = "2.1"
+CURRENT_VERSION = "2.2"
 VERSION_URL = "https://raw.githubusercontent.com/illeska/idhchecker_osint/main/version.txt"
 
 
@@ -88,7 +88,7 @@ def detect_address_type(address):
 class IPCheckerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("IDH Checker v2.1")
+        self.root.title("IDH Checker v2.2")
 
         
         self.fonts = {
@@ -206,12 +206,11 @@ class IPCheckerGUI:
             self.services_container,
             text="",  
             bootstyle="primary",
-            padding=(10, 5)
+            padding=(10,5)
 )
         self.services_visible = False
 
-        self.services_canvas = tk.Canvas(self.services_frame, height=120, highlightthickness=0)
-        self.services_scrollbar = ttk.Scrollbar(self.services_frame, orient="vertical", command=self.services_canvas.yview)
+        self.services_canvas = tk.Canvas(self.services_frame, height=100, highlightthickness=0)
         self.services_scrollable_frame = ttk.Frame(self.services_canvas)
 
         self.services_scrollable_frame.bind(
@@ -219,10 +218,9 @@ class IPCheckerGUI:
             lambda e: self.services_canvas.configure(scrollregion=self.services_canvas.bbox("all"))
         )
         self.services_canvas.create_window((0, 0), window=self.services_scrollable_frame, anchor="nw")
-        self.services_canvas.configure(yscrollcommand=self.services_scrollbar.set)
 
         self.services_canvas.pack(side="left", fill="x", expand=True)
-        self.services_scrollbar.pack(side="right", fill="y")
+
 
         for i, (service_name, service_data) in enumerate(self.services.items()):
             cb = ttk.Checkbutton(
@@ -231,7 +229,7 @@ class IPCheckerGUI:
                 variable=service_data["enabled"],
                 bootstyle="success"
             )
-            cb.grid(row=i // 3, column=i % 3, padx=10, pady=5, sticky="w")
+            cb.grid(row=i // 3, column=i % 3, padx=5, pady=1, sticky="w")
 
 
         self.select_buttons_frame = ttk.Frame(self.services_scrollable_frame)
@@ -244,7 +242,7 @@ class IPCheckerGUI:
             bootstyle="info-outline",
             width=12
         )
-        self.select_all_btn.pack(side="left", padx=5, ipady=3)
+        self.select_all_btn.pack(side="right", padx=5, ipady=3)
 
         self.deselect_all_btn = ttk.Button(
             self.select_buttons_frame,
@@ -253,15 +251,13 @@ class IPCheckerGUI:
             bootstyle="info-outline",
             width=12
         )
-        self.deselect_all_btn.pack(side="left", padx=5, ipady=3)
-
-
+        self.deselect_all_btn.pack(side="right", padx=5, ipady=3)
 
         self.address_container = tk.Frame(self.main_frame, pady=10)
         self.address_container.pack(fill="x")
-        
+
         self.address_label = tk.Label(
-            self.address_container, 
+            self.address_container,
             text="Current Entry:", 
             font=self.fonts["subtitle"],
         )
@@ -340,12 +336,82 @@ class IPCheckerGUI:
         self.block_button.pack(side="left", padx=5, ipady=5)
 
 
-        self.stats_label = tk.Label(
-            self.main_frame, 
-            text="",  
-            font=("Poppins", 8, "italic")
+        self.stats_container = ttk.Frame(self.main_frame)
+        self.stats_container.pack(fill="x", pady=10)
+
+        self.stats_toggle_btn = ttk.Button(
+            self.stats_container,
+            text="► Statistics",
+            command=self.toggle_stats,
+            bootstyle="link"
         )
-        self.stats_label.pack(anchor="w", pady=(0, 5))
+        self.stats_toggle_btn.pack(anchor="w")
+
+        self.stats_frame = ttk.LabelFrame(
+            self.stats_container,
+            text="",
+            bootstyle="info",
+            padding=(8, 4)
+        )
+        self.stats_visible = False
+
+        # Stats grid frame
+        self.stats_grid = ttk.Frame(self.stats_frame)
+        self.stats_grid.pack(fill="x")
+
+        # Configure grid columns to be equal width
+        self.stats_grid.columnconfigure(0, weight=1)
+        self.stats_grid.columnconfigure(1, weight=1)
+        self.stats_grid.columnconfigure(2, weight=1)
+        self.stats_grid.columnconfigure(3, weight=1)
+
+        # Total stats
+        self.total_frame = ttk.Frame(self.stats_grid)
+        self.total_frame.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
+        self.total_label = ttk.Label(self.total_frame, text="📁 Total", font=("Poppins", 9, "bold"))
+        self.total_label.pack()
+        self.total_count = ttk.Label(self.total_frame, text="0", font=("Poppins", 14, "bold"))
+        self.total_count.pack()
+
+        # Blocked stats
+        self.blocked_frame = ttk.Frame(self.stats_grid)
+        self.blocked_frame.grid(row=0, column=1, padx=5, pady=2, sticky="ew")
+        self.blocked_label = ttk.Label(self.blocked_frame, text="🚫 Blocked", font=("Poppins", 9, "bold"))
+        self.blocked_label.pack()
+        self.blocked_count = ttk.Label(self.blocked_frame, text="0", font=("Poppins", 14, "bold"), foreground="#dc3545")
+        self.blocked_count.pack()
+
+        # Safe stats
+        self.safe_frame = ttk.Frame(self.stats_grid)
+        self.safe_frame.grid(row=0, column=2, padx=5, pady=2, sticky="ew")
+        self.safe_label = ttk.Label(self.safe_frame, text="✅ Safe", font=("Poppins", 9, "bold"))
+        self.safe_label.pack()
+        self.safe_count = ttk.Label(self.safe_frame, text="0", font=("Poppins", 14, "bold"), foreground="#28a745")
+        self.safe_count.pack()
+
+        # Remaining stats
+        self.remaining_frame = ttk.Frame(self.stats_grid)
+        self.remaining_frame.grid(row=0, column=3, padx=5, pady=2, sticky="ew")
+        self.remaining_label = ttk.Label(self.remaining_frame, text="⏳ Remaining", font=("Poppins", 9, "bold"))
+        self.remaining_label.pack()
+        self.remaining_count = ttk.Label(self.remaining_frame, text="0", font=("Poppins", 14, "bold"), foreground="#ffc107")
+        self.remaining_count.pack()
+
+        # Progress bar
+        self.progress_frame = ttk.Frame(self.stats_frame)
+        self.progress_frame.pack(fill="x", pady=(10, 0))
+
+        self.progress_label = ttk.Label(self.progress_frame, text="Progress: 0%", font=("Poppins", 8))
+        self.progress_label.pack(anchor="w")
+
+        self.progress_bar = ttk.Progressbar(
+            self.progress_frame,
+            mode='determinate',
+            bootstyle="success-striped",
+            length=400
+        )
+        self.progress_bar.pack(fill="x", pady=(2, 0))
+
 
 
         self.console_frame = tk.Frame(
@@ -446,7 +512,14 @@ class IPCheckerGUI:
             self.services_toggle_btn.config(text="▼ Services to Use")
         self.services_visible = not self.services_visible
 
-
+    def toggle_stats(self):
+        if self.stats_visible:
+            self.stats_frame.pack_forget()
+            self.stats_toggle_btn.config(text="► Statistics")
+        else:
+            self.stats_frame.pack(fill="x", pady=(0, 5))
+            self.stats_toggle_btn.config(text="▼ Statistics")
+        self.stats_visible = not self.stats_visible
 
     def change_theme(self, selected_theme):
         style = Style()
@@ -546,6 +619,7 @@ class IPCheckerGUI:
                 type_display = "Unknown"
                 
             self.console_log(f"Navigated back to {type_display}: {self.current_address}")
+            self.update_stats()
 
     def go_next_address(self):
         if self.current_index < len(self.address_list) - 1:
@@ -564,6 +638,7 @@ class IPCheckerGUI:
                 type_display = "Unknown"
                 
             self.console_log(f"Navigated forward to {type_display}: {self.current_address}")
+            self.update_stats()
         elif self.current_index == len(self.address_list) - 1:
             if messagebox.askyesno("Confirmation", "This is the last entry, are you sure to end it?"):
                 self.address_display.config(state="normal")
@@ -685,6 +760,7 @@ class IPCheckerGUI:
                     file.write(f"{address} {status} ({reason})\n")
                 else:
                     file.write(line)
+        self.update_stats()
 
     def next_address(self):
         self.current_index += 1
@@ -737,17 +813,41 @@ class IPCheckerGUI:
 
     def update_stats(self):
         try:
-            with open(selected_file_path, 'r') as f:
+            if not hasattr(self, 'file_path') or not self.file_path:
+                return
+                    
+            with open(self.file_path, 'r') as f:
                 lines = f.readlines()
             total = len(lines)
             blocked = sum(1 for l in lines if "blocked" in l)
-            safe = sum(1 for l in lines if "safe" in l)
+            safe = sum(1 for l in lines if "safeed" in l)  # Note: "safed" dans votre code
             remaining = total - blocked - safe
-            self.stats_label.config(
-                text=f"Total: {total}, Blocked: {blocked}, Safe: {safe}, Remaining: {remaining}"
-            )
+                
+             # Update individual counters
+            self.total_count.config(text=str(total))
+            self.blocked_count.config(text=str(blocked))
+            self.safe_count.config(text=str(safe))
+            self.remaining_count.config(text=str(remaining))
+                
+                # Update progress bar
+            if total > 0:
+                progress_percentage = ((blocked + safe) / total) * 100
+                self.progress_bar['value'] = progress_percentage
+                self.progress_label.config(text=f"Progress: {progress_percentage:.1f}%")
+            else:
+                self.progress_bar['value'] = 0
+                self.progress_label.config(text="Progress: 0%")
+                    
         except Exception as e:
             self.console_log(f"Error updating stats: {e}")
+            # Reset to 0 if error
+            if hasattr(self, 'total_count'):
+                self.total_count.config(text="0")
+                self.blocked_count.config(text="0")
+                self.safe_count.config(text="0")
+                self.remaining_count.config(text="0")
+                self.progress_bar['value'] = 0
+                self.progress_label.config(text="Progress: 0%")
 
 class PrintRedirector:
     def __init__(self, gui):
