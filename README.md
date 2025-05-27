@@ -1,10 +1,11 @@
-<h1 align="center">IDH Checker v2.2</h1>
+<h1 align="center">IDH Checker v2.2.5 (Fixes Bugs)</h1>
 <p align="center">
 IP Addresses, Domain Names and Hashes Checker - via OSint 
 </p>
 
 
 ---
+
 > **⚠️ Disclaimer**  
 > This tool is intended for **ethical** and **legal** usage only. The author is not responsible for any illegal or malicious activities conducted with this tool. Always ensure compliance with local laws and regulations regarding cybersecurity and data privacy
 
@@ -16,11 +17,11 @@ IP Addresses, Domain Names and Hashes Checker - via OSint
 - **Hashes**: Validate the integrity of files and identify known malicious files using hash values (MD5, SHA-1, SHA-256).
 
 
+## 🔄 What's fixed in v2.2.5 *(Bug fixes release)*
 
+- 🐞 Fixed an issue where entries marked as **safe** were incorrectly shown as `"no results yet"` in the Excel output.
 
-
-
-## 🆕 What's New in v2.2
+## 🆕 What's New in v2.2.5
 
 - 📊 Improve the stats box (UI)
 - 🔄 Make the "Statistics" scrollable like "Services to Use"
@@ -121,7 +122,7 @@ c0202cf6...
 ## 🛡️ Legal Notices
 
 - Software developed by illeska  
-- Current version: 2.2
+- Current version: 2.2.5
 - Uses the following external services:
   - ttkbootstrap  
   - AbuseIPDB  
@@ -142,4 +143,3 @@ We welcome contributions! If you want to improve this project or fix any bugs, f
 For suggestions or questions:  
 DM ME.  
 # idhchecker_osint
-

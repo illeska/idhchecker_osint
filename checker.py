@@ -1,4 +1,4 @@
-CURRENT_VERSION = "2.2"
+CURRENT_VERSION = "2.2.5"
 VERSION_URL = "https://raw.githubusercontent.com/illeska/idhchecker_osint/main/version.txt"
 
 
@@ -23,7 +23,7 @@ def download_update(latest_version):
     try:
         urllib.request.urlretrieve(exe_url, new_path)
         messagebox.showinfo(
-            "Download successful",
+            "Download successful !",
             f"New version downloaded successfully.\n\nPath: {new_path}\n\nPlease close this app and run the new version. You can delete this one."
         )
     except Exception as e:
@@ -33,6 +33,7 @@ def download_update(latest_version):
 import ctypes
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("ipcheck.app")
 except:
     pass
 
@@ -56,6 +57,8 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
+
+
 
 def is_valid_ip(address):
     pattern = re.compile(r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$')
@@ -88,9 +91,8 @@ def detect_address_type(address):
 class IPCheckerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("IDH Checker v2.2")
-
-        
+        self.root.title("IDH Checker v2.2.5")
+ 
         self.fonts = {
             "title": ("Poppins", 20, "bold"),
             "subtitle": ("Poppins", 12, "bold"),
@@ -354,34 +356,24 @@ class IPCheckerGUI:
             padding=(8, 4)
         )
         self.stats_visible = False
-
-        # Stats grid frame
         self.stats_grid = ttk.Frame(self.stats_frame)
         self.stats_grid.pack(fill="x")
-
-        # Configure grid columns to be equal width
         self.stats_grid.columnconfigure(0, weight=1)
         self.stats_grid.columnconfigure(1, weight=1)
         self.stats_grid.columnconfigure(2, weight=1)
         self.stats_grid.columnconfigure(3, weight=1)
-
-        # Total stats
         self.total_frame = ttk.Frame(self.stats_grid)
         self.total_frame.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
         self.total_label = ttk.Label(self.total_frame, text="📁 Total", font=("Poppins", 9, "bold"))
         self.total_label.pack()
         self.total_count = ttk.Label(self.total_frame, text="0", font=("Poppins", 14, "bold"))
         self.total_count.pack()
-
-        # Blocked stats
         self.blocked_frame = ttk.Frame(self.stats_grid)
         self.blocked_frame.grid(row=0, column=1, padx=5, pady=2, sticky="ew")
         self.blocked_label = ttk.Label(self.blocked_frame, text="🚫 Blocked", font=("Poppins", 9, "bold"))
         self.blocked_label.pack()
         self.blocked_count = ttk.Label(self.blocked_frame, text="0", font=("Poppins", 14, "bold"), foreground="#dc3545")
         self.blocked_count.pack()
-
-        # Safe stats
         self.safe_frame = ttk.Frame(self.stats_grid)
         self.safe_frame.grid(row=0, column=2, padx=5, pady=2, sticky="ew")
         self.safe_label = ttk.Label(self.safe_frame, text="✅ Safe", font=("Poppins", 9, "bold"))
@@ -389,7 +381,6 @@ class IPCheckerGUI:
         self.safe_count = ttk.Label(self.safe_frame, text="0", font=("Poppins", 14, "bold"), foreground="#28a745")
         self.safe_count.pack()
 
-        # Remaining stats
         self.remaining_frame = ttk.Frame(self.stats_grid)
         self.remaining_frame.grid(row=0, column=3, padx=5, pady=2, sticky="ew")
         self.remaining_label = ttk.Label(self.remaining_frame, text="⏳ Remaining", font=("Poppins", 9, "bold"))
@@ -397,10 +388,9 @@ class IPCheckerGUI:
         self.remaining_count = ttk.Label(self.remaining_frame, text="0", font=("Poppins", 14, "bold"), foreground="#ffc107")
         self.remaining_count.pack()
 
-        # Progress bar
+
         self.progress_frame = ttk.Frame(self.stats_frame)
         self.progress_frame.pack(fill="x", pady=(10, 0))
-
         self.progress_label = ttk.Label(self.progress_frame, text="Progress: 0%", font=("Poppins", 8))
         self.progress_label.pack(anchor="w")
 
@@ -456,7 +446,6 @@ class IPCheckerGUI:
         self.current_address = None
 
     def export_to_csv(self):
-        """Export the data from the current file to a CSV file"""
         if not self.file_path:
             messagebox.showwarning("No File Selected", "Please select a file first before exporting data.")
             return     
@@ -482,7 +471,7 @@ class IPCheckerGUI:
                 
                 if len(parts) > 1:
                     status_info = parts[1]
-                    status_match = re.search(r'(blocked|safed)', status_info, re.IGNORECASE)
+                    status_match = re.search(r'(blocked|safeed)', status_info, re.IGNORECASE)
                     status = status_match.group(1) if status_match else ""
                     
                     reason_match = re.search(r'\((.*?)\)', status_info)
@@ -820,16 +809,16 @@ class IPCheckerGUI:
                 lines = f.readlines()
             total = len(lines)
             blocked = sum(1 for l in lines if "blocked" in l)
-            safe = sum(1 for l in lines if "safeed" in l)  # Note: "safed" dans votre code
+            safe = sum(1 for l in lines if "safeed" in l) 
             remaining = total - blocked - safe
                 
-             # Update individual counters
+
             self.total_count.config(text=str(total))
             self.blocked_count.config(text=str(blocked))
             self.safe_count.config(text=str(safe))
             self.remaining_count.config(text=str(remaining))
                 
-                # Update progress bar
+
             if total > 0:
                 progress_percentage = ((blocked + safe) / total) * 100
                 self.progress_bar['value'] = progress_percentage
@@ -840,7 +829,6 @@ class IPCheckerGUI:
                     
         except Exception as e:
             self.console_log(f"Error updating stats: {e}")
-            # Reset to 0 if error
             if hasattr(self, 'total_count'):
                 self.total_count.config(text="0")
                 self.blocked_count.config(text="0")
@@ -887,7 +875,8 @@ def open_web(address, address_type, enabled_services):
         print(f"All services opened for Hash: {address}.")
 
 if __name__ == "__main__":
-    root = ttk.Window(themename="superhero")
+    root = ttk.Window(themename="cyborg")
+    root.wm_iconbitmap(resource_path("icon.ico"))
     gui = IPCheckerGUI(root)
     sys.stdout = PrintRedirector(gui)
     check_for_update()
