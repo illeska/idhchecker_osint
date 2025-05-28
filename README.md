@@ -1,4 +1,4 @@
-<h1 align="center">IDH Checker v2.2.5 (Fixes Bugs)</h1>
+<h1 align="center">IDH Checker v2.3</h1>
 <p align="center">
 IP Addresses, Domain Names and Hashes Checker - via OSint 
 </p>
@@ -17,15 +17,10 @@ IP Addresses, Domain Names and Hashes Checker - via OSint
 - **Hashes**: Validate the integrity of files and identify known malicious files using hash values (MD5, SHA-1, SHA-256).
 
 
-## 🔄 What's fixed in v2.2.5 *(Bug fixes release)*
+## 🆕 What's New in v2.3
 
-- 🐞 Fixed an issue where entries marked as **safe** were incorrectly shown as `"no results yet"` in the Excel output.
-
-## 🆕 What's New in v2.2.5
-
-- 📊 Improve the stats box (UI)
-- 🔄 Make the "Statistics" scrollable like "Services to Use"
-
+- 📊 All-Time Statistics: New feature to track your analysis history across all sessionse:
+  - View total blocked and safe entries processed since first use
 
 ## 🛠 Features
 
@@ -41,6 +36,7 @@ IP Addresses, Domain Names and Hashes Checker - via OSint
 - Progress indicator: Checking...  
 - Statistics counter: total, blocked, safe, pending entries  
 - Ability to export your results into a `.csv` file  
+- All-time statistics tracking across all sessions
 
 ---
 
@@ -74,7 +70,7 @@ The Linux executable is under development. For now, use the script version:
 5. For each entry (IP or domain), choose:  
    - ✅ Check this IP/Domain → Opens all selected scanning websites in your browser  
    - ⛔ Block it → Add `blocked (reason)` in file  
-   - ✅ Safe it → Add `safed (reason)` in file  
+   - ✅ Safe it → Add `safeed (reason)` in file  
    - ↔️ Use **Back** or **Next** to revisit or move between entries  
 
 6. Refer to the **statistics bar** for:  
@@ -82,6 +78,8 @@ The Linux executable is under development. For now, use the script version:
     - How many have been marked "blocked"  
     - How many are considered "safe"  
     - How many remain unprocessed  
+
+7. View all-time statistics via Options → All-Time Statistics to see your cumulative analysis history
 
 
 
@@ -107,7 +105,6 @@ c0202cf6...
 - 📊 Display IP analysis results directly in the interface, powered by API integration *(v4.x)*  
 
 ### Planned tiny features for the v2:
-- ⏳ Add all-time stats in the options *(v2.3)*
 - 🌐 French language Support *(v2.4)*
 - ⚙️ Have a preset for "services to use" when the user modifies it *(v2.5)*
 - 🖋️ Sign the file by adding date, time, and author during export *(v2.6)*
@@ -122,7 +119,7 @@ c0202cf6...
 ## 🛡️ Legal Notices
 
 - Software developed by illeska  
-- Current version: 2.2.5
+- Current version: 2.3
 - Uses the following external services:
   - ttkbootstrap  
   - AbuseIPDB  

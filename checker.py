@@ -1,4 +1,4 @@
-CURRENT_VERSION = "2.2.5"
+CURRENT_VERSION = "2.3"
 VERSION_URL = "https://raw.githubusercontent.com/illeska/idhchecker_osint/main/version.txt"
 
 
@@ -23,7 +23,7 @@ def download_update(latest_version):
     try:
         urllib.request.urlretrieve(exe_url, new_path)
         messagebox.showinfo(
-            "Download successful !",
+            "Download successful",
             f"New version downloaded successfully.\n\nPath: {new_path}\n\nPlease close this app and run the new version. You can delete this one."
         )
     except Exception as e:
@@ -33,7 +33,6 @@ def download_update(latest_version):
 import ctypes
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("ipcheck.app")
 except:
     pass
 
@@ -57,8 +56,6 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
-
-
 
 def is_valid_ip(address):
     pattern = re.compile(r'^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$')
@@ -88,11 +85,12 @@ def detect_address_type(address):
     else:
         return "unknown"
 
-class IPCheckerGUI:
+class IDHCheckerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("IDH Checker v2.2.5")
- 
+        self.root.title("IDH Checker v2.3")
+
+        
         self.fonts = {
             "title": ("Poppins", 20, "bold"),
             "subtitle": ("Poppins", 12, "bold"),
@@ -189,6 +187,7 @@ class IPCheckerGUI:
         export_menu = tk.Menu(options_menu, tearoff=0)
         export_menu.add_command(label="CSV", command=self.export_to_csv)
         options_menu.add_cascade(label="Export", menu=export_menu)
+        options_menu.add_command(label="All-Time Statistics", command=self.show_alltime_stats)
         
         menu_bar.add_cascade(label="Options", menu=options_menu)
         self.root.config(menu=menu_bar)
@@ -356,24 +355,29 @@ class IPCheckerGUI:
             padding=(8, 4)
         )
         self.stats_visible = False
+
         self.stats_grid = ttk.Frame(self.stats_frame)
         self.stats_grid.pack(fill="x")
+
         self.stats_grid.columnconfigure(0, weight=1)
         self.stats_grid.columnconfigure(1, weight=1)
         self.stats_grid.columnconfigure(2, weight=1)
         self.stats_grid.columnconfigure(3, weight=1)
+
         self.total_frame = ttk.Frame(self.stats_grid)
         self.total_frame.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
         self.total_label = ttk.Label(self.total_frame, text="📁 Total", font=("Poppins", 9, "bold"))
         self.total_label.pack()
         self.total_count = ttk.Label(self.total_frame, text="0", font=("Poppins", 14, "bold"))
         self.total_count.pack()
+
         self.blocked_frame = ttk.Frame(self.stats_grid)
         self.blocked_frame.grid(row=0, column=1, padx=5, pady=2, sticky="ew")
         self.blocked_label = ttk.Label(self.blocked_frame, text="🚫 Blocked", font=("Poppins", 9, "bold"))
         self.blocked_label.pack()
         self.blocked_count = ttk.Label(self.blocked_frame, text="0", font=("Poppins", 14, "bold"), foreground="#dc3545")
         self.blocked_count.pack()
+
         self.safe_frame = ttk.Frame(self.stats_grid)
         self.safe_frame.grid(row=0, column=2, padx=5, pady=2, sticky="ew")
         self.safe_label = ttk.Label(self.safe_frame, text="✅ Safe", font=("Poppins", 9, "bold"))
@@ -388,9 +392,9 @@ class IPCheckerGUI:
         self.remaining_count = ttk.Label(self.remaining_frame, text="0", font=("Poppins", 14, "bold"), foreground="#ffc107")
         self.remaining_count.pack()
 
-
         self.progress_frame = ttk.Frame(self.stats_frame)
         self.progress_frame.pack(fill="x", pady=(10, 0))
+
         self.progress_label = ttk.Label(self.progress_frame, text="Progress: 0%", font=("Poppins", 8))
         self.progress_label.pack(anchor="w")
 
@@ -444,6 +448,7 @@ class IPCheckerGUI:
         self.address_types = {}  
         self.current_index = -1
         self.current_address = None
+        self.initialize_alltime_stats()
 
     def export_to_csv(self):
         if not self.file_path:
@@ -749,6 +754,13 @@ class IPCheckerGUI:
                     file.write(f"{address} {status} ({reason})\n")
                 else:
                     file.write(line)
+        
+        if status == "blocked":
+            self.update_alltime_stats(blocked_increment=1)
+        elif status == "safeed":
+            self.update_alltime_stats(safe_increment=1)
+        
+        self.refresh_stats_window()
         self.update_stats()
 
     def next_address(self):
@@ -799,43 +811,238 @@ class IPCheckerGUI:
         except Exception as e:
             self.console_log(f"Error loading file: {e}")
             messagebox.showerror("Error", str(e))
-
+    
     def update_stats(self):
         try:
-            if not hasattr(self, 'file_path') or not self.file_path:
+            if not self.file_path or not self.address_list:
                 return
-                    
-            with open(self.file_path, 'r') as f:
-                lines = f.readlines()
-            total = len(lines)
-            blocked = sum(1 for l in lines if "blocked" in l)
-            safe = sum(1 for l in lines if "safeed" in l) 
-            remaining = total - blocked - safe
                 
+            total = len(self.address_list)
+            blocked = 0
+            safe = 0
+            
+            with open(self.file_path, 'r') as file:
+                lines = file.readlines()
+                for line in lines:
+                    if ' blocked ' in line:
+                        blocked += 1
+                    elif ' safeed ' in line:
+                        safe += 1
+            
+            remaining = total - blocked - safe
+            progress = ((blocked + safe) / total) * 100 if total > 0 else 0
 
             self.total_count.config(text=str(total))
             self.blocked_count.config(text=str(blocked))
             self.safe_count.config(text=str(safe))
             self.remaining_count.config(text=str(remaining))
-                
-
-            if total > 0:
-                progress_percentage = ((blocked + safe) / total) * 100
-                self.progress_bar['value'] = progress_percentage
-                self.progress_label.config(text=f"Progress: {progress_percentage:.1f}%")
-            else:
-                self.progress_bar['value'] = 0
-                self.progress_label.config(text="Progress: 0%")
-                    
+            
+            self.progress_bar['value'] = progress
+            self.progress_label.config(text=f"Progress: {progress:.1f}%")
+            
         except Exception as e:
             self.console_log(f"Error updating stats: {e}")
-            if hasattr(self, 'total_count'):
-                self.total_count.config(text="0")
-                self.blocked_count.config(text="0")
-                self.safe_count.config(text="0")
-                self.remaining_count.config(text="0")
-                self.progress_bar['value'] = 0
-                self.progress_label.config(text="Progress: 0%")
+
+    def get_stats_file_path(self):
+        try:
+            appdata_path = os.environ.get('APPDATA')
+            if not appdata_path:
+                appdata_path = os.path.expanduser('~/.config')
+            
+            idhchecker_dir = os.path.join(appdata_path, 'IDHChecker')
+            if not os.path.exists(idhchecker_dir):
+                os.makedirs(idhchecker_dir)
+            
+            return os.path.join(idhchecker_dir, "alltime_stats.txt")
+        except Exception as e:
+            self.console_log(f"Error getting stats file path: {e}")
+            return "idhchecker_alltime_stats.txt"
+
+    def update_alltime_stats(self, blocked_increment=0, safe_increment=0):
+        try:
+            stats_file = self.get_stats_file_path()
+            current_blocked = 0
+            current_safe = 0
+            
+            if os.path.exists(stats_file):
+                with open(stats_file, 'r') as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        if line.startswith("blocked:"):
+                            current_blocked = int(line.split(":")[1].strip())
+                        elif line.startswith("safe:"):
+                            current_safe = int(line.split(":")[1].strip())
+            
+            new_blocked = current_blocked + blocked_increment
+            new_safe = current_safe + safe_increment
+            
+            with open(stats_file, 'w') as f:
+                f.write(f"blocked:{new_blocked}\n")
+                f.write(f"safe:{new_safe}\n")
+                f.write(f"last_updated:{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                
+                
+        except Exception as e:
+            self.console_log(f"Error updating all-time stats: {e}")
+
+    def initialize_alltime_stats(self):
+        try:
+            stats_file = self.get_stats_file_path()
+            if not os.path.exists(stats_file):
+                with open(stats_file, 'w') as f:
+                    f.write("blocked:0\n")
+                    f.write("safe:0\n")
+                    f.write(f"last_updated:{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        except Exception as e:
+            self.console_log(f"Error initializing all-time stats: {e}")
+
+    def get_alltime_stats(self):
+        try:
+            stats_file = self.get_stats_file_path()
+            if not os.path.exists(stats_file):
+                return {"blocked": 0, "safe": 0, "last_updated": "Never"}
+            
+            stats = {"blocked": 0, "safe": 0, "last_updated": "Never"}
+            with open(stats_file, 'r') as f:
+                lines = f.readlines()
+                for line in lines:
+                    if line.startswith("blocked:"):
+                        stats["blocked"] = int(line.split(":")[1].strip())
+                    elif line.startswith("safe:"):
+                        stats["safe"] = int(line.split(":")[1].strip())
+                    elif line.startswith("last_updated:"):
+                        stats["last_updated"] = line.split(":", 1)[1].strip()
+            
+            return stats
+        except Exception as e:
+            self.console_log(f"Error reading all-time stats: {e}")
+            return {"blocked": 0, "safe": 0, "last_updated": "Error"}
+
+    def show_alltime_stats(self):
+        stats = self.get_alltime_stats()
+        
+        stats_window = tk.Toplevel(self.root)
+        stats_window.title("All-Time Statistics")
+        stats_window.geometry("400x700")
+        stats_window.transient(self.root)
+        stats_window.grab_set()
+        
+        self.root.update_idletasks()
+        x = self.root.winfo_rootx() + 100
+        y = self.root.winfo_rooty() + 100
+        stats_window.geometry(f"+{x}+{y}")
+        
+        self.stats_window = stats_window
+        self.stats_labels = {}
+        
+        main_frame = ttk.Frame(stats_window, padding=20)
+        main_frame.pack(fill="both", expand=True)
+        
+        title_label = ttk.Label(
+            main_frame, 
+            text="📊 All-Time Statistics", 
+            font=("Poppins", 16, "bold")
+        )
+        title_label.pack(pady=(0, 20))
+        
+        stats_frame = ttk.Frame(main_frame)
+        stats_frame.pack(fill="x", pady=10)
+        
+        blocked_frame = ttk.LabelFrame(stats_frame, text="🚫 Total Blocked", padding=10)
+        blocked_frame.pack(fill="x", pady=(0, 10))
+        
+        self.stats_labels['blocked'] = ttk.Label(
+            blocked_frame, 
+            text=str(stats["blocked"]), 
+            font=("Poppins", 24, "bold"),
+            foreground="#dc3545"
+        )
+        self.stats_labels['blocked'].pack()
+        
+        safe_frame = ttk.LabelFrame(stats_frame, text="✅ Total Safe", padding=10)
+        safe_frame.pack(fill="x", pady=(0, 10))
+        
+        self.stats_labels['safe'] = ttk.Label(
+            safe_frame, 
+            text=str(stats["safe"]), 
+            font=("Poppins", 24, "bold"),
+            foreground="#28a745"
+        )
+        self.stats_labels['safe'].pack()
+        
+        total_processed = stats["blocked"] + stats["safe"]
+        total_frame = ttk.LabelFrame(stats_frame, text="📈 Total Processed", padding=10)
+        total_frame.pack(fill="x", pady=(0, 10))
+        
+        self.stats_labels['total'] = ttk.Label(
+            total_frame, 
+            text=str(total_processed), 
+            font=("Poppins", 24, "bold"),
+            foreground="#007bff"
+        )
+        self.stats_labels['total'].pack()
+        
+        self.stats_labels['updated'] = ttk.Label(
+            main_frame, 
+            text=f"Last updated: {stats['last_updated']}", 
+            font=("Poppins", 9),
+            foreground="gray"
+        )
+        self.stats_labels['updated'].pack(pady=(10, 0))
+        
+        buttons_frame = ttk.Frame(main_frame)
+        buttons_frame.pack(fill="x", pady=(20, 0))
+        
+        reset_btn = ttk.Button(
+            buttons_frame,
+            text="🗑️ Reset Stats",
+            command=lambda: self.reset_alltime_stats(stats_window),
+            bootstyle="danger-outline"
+        )
+        reset_btn.pack(side="left")
+        
+        close_btn = ttk.Button(
+            buttons_frame,
+            text="Close",
+            command=lambda: self.close_stats_window(),
+            bootstyle="secondary"
+        )
+        close_btn.pack(side="right")
+
+    def close_stats_window(self):
+        if hasattr(self, 'stats_window'):
+            self.stats_window.destroy()
+            self.stats_window = None
+            self.stats_labels = {}
+
+    def refresh_stats_window(self):
+        if hasattr(self, 'stats_window') and self.stats_window and self.stats_window.winfo_exists():
+            try:
+                stats = self.get_alltime_stats()
+                self.stats_labels['blocked'].config(text=str(stats["blocked"]))
+                self.stats_labels['safe'].config(text=str(stats["safe"]))
+                total_processed = stats["blocked"] + stats["safe"]
+                self.stats_labels['total'].config(text=str(total_processed))
+                self.stats_labels['updated'].config(text=f"Last updated: {stats['last_updated']}")
+            except:
+                pass  
+
+    def reset_alltime_stats(self, parent_window):
+        if messagebox.askyesno(
+            "Reset Statistics", 
+            "Are you sure you want to reset all-time statistics?\n\nThis action cannot be undone.",
+            parent=parent_window
+        ):
+            try:
+                stats_file = self.get_stats_file_path()
+                if os.path.exists(stats_file):
+                    os.remove(stats_file)
+                self.console_log("All-time statistics have been reset.")
+                parent_window.destroy()
+                messagebox.showinfo("Reset Complete", "All-time statistics have been reset successfully.")
+            except Exception as e:
+                self.console_log(f"Error resetting all-time stats: {e}")
+                messagebox.showerror("Reset Error", f"Failed to reset statistics: {e}")
 
 class PrintRedirector:
     def __init__(self, gui):
@@ -875,9 +1082,8 @@ def open_web(address, address_type, enabled_services):
         print(f"All services opened for Hash: {address}.")
 
 if __name__ == "__main__":
-    root = ttk.Window(themename="cyborg")
-    root.wm_iconbitmap(resource_path("icon.ico"))
-    gui = IPCheckerGUI(root)
+    root = ttk.Window(themename="superhero")
+    gui = IDHCheckerApp(root)
     sys.stdout = PrintRedirector(gui)
     check_for_update()
     root.mainloop()
